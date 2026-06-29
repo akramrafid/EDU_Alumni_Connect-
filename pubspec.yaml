@@ -1,0 +1,61 @@
+name: edu_alumni_connect
+description: "Alumni/student mentorship and networking platform for East Delta University."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  go_router: ^14.2.0
+  freezed_annotation: ^2.4.1
+  fpdart: ^1.1.0
+
+  # Firebase SDK
+  firebase_core: ^3.1.1
+  firebase_auth: ^5.1.2
+  cloud_firestore: ^5.0.3
+  firebase_storage: ^12.0.2
+  firebase_messaging: ^15.0.2
+  firebase_app_check: ^0.3.1
+  cloud_functions: ^5.0.2
+
+  # Search
+  algolia: ^1.1.2
+
+  # UI & Media
+  google_fonts: ^6.2.1
+  cached_network_image: ^3.3.1
+  shimmer: ^3.0.0
+  logger: ^2.3.0
+  image_picker: ^1.1.2
+  connectivity_plus: ^6.0.3
+  intl: ^0.20.2
+
+dependency_overrides:
+  http: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+  build_runner: ^2.4.9
+  riverpod_generator: ^2.4.0
+  freezed: ^2.5.2
+  json_serializable: ^6.8.0
+  mocktail: ^1.0.4
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
