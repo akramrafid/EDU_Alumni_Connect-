@@ -6,7 +6,7 @@ part of 'auth_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authStateHash() => r'489f5fb608fca8fd2d6e66dd46f230076b8f6fdc';
+String _$authStateHash() => r'd0465cf0c57a578814458f6b73702781c13fcec8';
 
 /// See also [authState].
 @ProviderFor(authState)
@@ -35,5 +35,37 @@ final currentUserProvider =
 );
 
 typedef _$CurrentUser = AutoDisposeNotifier<AsyncValue<AuthUser?>>;
+String _$signInNotifierHash() => r'c11346ec7017f4e7e676e3b8fe19ed4100a240c4';
+
+/// See also [SignInNotifier].
+@ProviderFor(SignInNotifier)
+final signInNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<SignInNotifier, void>.internal(
+  SignInNotifier.new,
+  name: r'signInNotifierProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$signInNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$SignInNotifier = AutoDisposeAsyncNotifier<void>;
+String _$registerNotifierHash() => r'e45e64109bff0a0d992e0311c45b71767c8d7697';
+
+/// See also [RegisterNotifier].
+@ProviderFor(RegisterNotifier)
+final registerNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<RegisterNotifier, void>.internal(
+  RegisterNotifier.new,
+  name: r'registerNotifierProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$registerNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$RegisterNotifier = AutoDisposeAsyncNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
