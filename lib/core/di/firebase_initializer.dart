@@ -7,20 +7,34 @@ class FirebaseInitializer {
 
   static Future<void> initialize() async {
     try {
-      // Initialize Firebase (will load options automatically from platform config files:
-      // google-services.json for Android / GoogleService-Info.plist for iOS)
-      await Firebase.initializeApp();
+      try {
+        await Firebase.initializeApp();
+      } catch (e) {
+        debugPrint('Failed to initialize Firebase with native resources, falling back to dummy options: $e');
+        await Firebase.initializeApp(
+          options: const FirebaseOptions(
+            apiKey: "dummy-api-key-for-local-dev-only",
+            appId: "1:1234567890:android:dummyapp",
+            messagingSenderId: "1234567890",
+            projectId: "edu-alumni-connect-dummy",
+            storageBucket: "edu-alumni-connect-dummy.appspot.com",
+          ),
+        );
+      }
 
       // Configure App Check according to the platform-specific rules
-      await FirebaseAppCheck.instance.activate(
-        webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
-        androidProvider: kDebugMode
-            ? AndroidProvider.debug
-            : AndroidProvider.playIntegrity,
-        appleProvider: kDebugMode
-            ? AppleProvider.debug
-            : AppleProvider.appAttest,
-      );
+      // (only run if using actual Firebase configuration)
+      if (Firebase.app().options.apiKey != "dummy-api-key-for-local-dev-only") {
+        await FirebaseAppCheck.instance.activate(
+          webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
+          androidProvider: kDebugMode
+              ? AndroidProvider.debug
+              : AndroidProvider.playIntegrity,
+          appleProvider: kDebugMode
+              ? AppleProvider.debug
+              : AppleProvider.appAttest,
+        );
+      }
     } catch (e) {
       // Safely catch initialization exceptions in environments where config files are not yet provisioned
       debugPrint('Firebase initialization warning/error: $e');
