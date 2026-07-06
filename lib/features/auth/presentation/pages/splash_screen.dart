@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -48,9 +47,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     if (!mounted) return;
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final onboardingSeen = prefs.getBool('onboarding_seen') ?? false;
-
       if (!mounted) return;
 
       final authStateAsync = ref.read(currentUserProvider);
@@ -59,11 +55,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         data: (user) {
           if (!mounted) return;
           if (user == null) {
-            if (onboardingSeen) {
-              context.go(AppRoutes.login);
-            } else {
-              context.go(AppRoutes.onboarding);
-            }
+            context.go(AppRoutes.onboarding);
           } else {
             if (user.role == UserRole.alumni &&
                 user.verificationStatus == VerificationStatus.pending) {
