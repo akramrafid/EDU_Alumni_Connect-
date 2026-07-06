@@ -13,6 +13,9 @@ import '../../features/auth/domain/usecases/sign_in_use_case.dart';
 import '../../features/auth/domain/usecases/sign_out_use_case.dart';
 import '../../features/auth/domain/usecases/watch_auth_state_use_case.dart';
 
+import '../../core/constants/app_config.dart';
+import 'dummy_sources.dart';
+
 part 'providers.g.dart';
 
 @riverpod
@@ -32,11 +35,17 @@ FirebaseStorage firebaseStorage(FirebaseStorageRef ref) {
 
 @riverpod
 IAuthRemoteSource authRemoteSource(AuthRemoteSourceRef ref) {
+  if (AppConfig.useMock) {
+    return DummyAuthRemoteSource();
+  }
   return FirebaseAuthRemoteSource(ref.watch(firebaseAuthProvider));
 }
 
 @riverpod
 IUserRemoteSource userRemoteSource(UserRemoteSourceRef ref) {
+  if (AppConfig.useMock) {
+    return DummyUserRemoteSource();
+  }
   return FirestoreUserRemoteSource(
     ref.watch(firebaseFirestoreProvider),
     ref.watch(firebaseStorageProvider),
