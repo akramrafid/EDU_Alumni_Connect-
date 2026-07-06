@@ -32,13 +32,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
-      final success = await ref.read(signInNotifierProvider.notifier).signIn(
+      await ref.read(signInNotifierProvider.notifier).signIn(
             _emailController.text,
             _passwordController.text,
           );
-      if (success && mounted) {
-        context.go(AppRoutes.home);
-      }
     }
   }
 
@@ -50,8 +47,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       (previous, next) {
         next.whenOrNull(
           error: (error, _) {
-            // Strip structural Exception tags if they exist
-            final errorMessage = error.toString().replaceFirst('Exception: ', '');
+            // Cleanly parse error message for snackbar
+            final errorMessage = error is Exception 
+                ? error.toString().replaceFirst('Exception: ', '')
+                : error.toString();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(errorMessage),

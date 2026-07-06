@@ -34,7 +34,7 @@ class SignInNotifier extends _$SignInNotifier {
 
     return result.fold(
       (failure) {
-        state = AsyncError(failure, StackTrace.current);
+        state = AsyncError(failure, StackTrace.empty);
         return false;
       },
       (user) {
@@ -69,7 +69,7 @@ class RegisterNotifier extends _$RegisterNotifier {
 
     return result.fold(
       (failure) {
-        state = AsyncError(failure, StackTrace.current);
+        state = AsyncError(failure, StackTrace.empty);
         return false;
       },
       (_) {
@@ -104,7 +104,7 @@ class RegisterNotifier extends _$RegisterNotifier {
 
     return result.fold(
       (failure) {
-        state = AsyncError(failure, StackTrace.current);
+        state = AsyncError(failure, StackTrace.empty);
         return false;
       },
       (_) {
