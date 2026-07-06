@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/constants/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
@@ -24,16 +25,17 @@ class VerificationPendingScreen extends ConsumerWidget {
     );
 
     try {
-      // 1. Reload Firebase user to fetch updated custom claims and tokens
-      final auth = ref.read(firebaseAuthProvider);
-      final user = auth.currentUser;
-      if (user != null) {
-        await user.reload();
-        // Force refresh ID token to sync claims
-        await user.getIdToken(true);
+      // In mock mode, skip Firebase-specific token refresh
+      if (!AppConfig.useMock) {
+        final auth = ref.read(firebaseAuthProvider);
+        final user = auth.currentUser;
+        if (user != null) {
+          await user.reload();
+          await user.getIdToken(true);
+        }
       }
 
-      // 2. Invalidate the Riverpod authStateProvider to force reloading user metadata from Firestore
+      // Invalidate the Riverpod authStateProvider to force reloading user metadata
       ref.invalidate(authStateProvider);
       
       // Wait for provider to reload

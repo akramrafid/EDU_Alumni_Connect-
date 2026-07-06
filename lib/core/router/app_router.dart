@@ -12,6 +12,7 @@ import '../../features/auth/presentation/pages/splash_screen.dart';
 import '../../features/auth/presentation/pages/onboarding_screen.dart';
 import '../../features/auth/presentation/pages/login_screen.dart';
 import '../../features/auth/presentation/pages/register_screen.dart';
+import '../../features/auth/presentation/pages/profile_setup_page.dart';
 import '../../features/auth/presentation/pages/verification_pending_screen.dart';
 import '../../features/directory/presentation/pages/directory_screen.dart';
 import '../../features/directory/presentation/pages/alumni_detail_screen.dart';
@@ -49,6 +50,7 @@ GoRouter router(RouterRef ref) {
 
       final isAuthPage = matchedLocation == AppRoutes.login ||
           matchedLocation == AppRoutes.register ||
+          matchedLocation == AppRoutes.profileSetup ||
           matchedLocation == AppRoutes.onboarding ||
           matchedLocation == AppRoutes.splash;
 
@@ -93,6 +95,10 @@ GoRouter router(RouterRef ref) {
       GoRoute(
         path: AppRoutes.register,
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.profileSetup,
+        builder: (context, state) => const ProfileSetupPage(),
       ),
       GoRoute(
         path: AppRoutes.verifyEmail,

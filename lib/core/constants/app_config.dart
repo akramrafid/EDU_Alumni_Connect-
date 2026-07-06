@@ -1,7 +1,7 @@
 enum AppEnvironment { dev, staging, prod }
 
 class AppConfig {
-  static const bool useMock = false; // Turned off mock mode to use real Firebase
+  static const bool useMock = true; // Mock mode ON until Firebase is fully configured
 
   final AppEnvironment environment;
   final String firebaseProjectId;

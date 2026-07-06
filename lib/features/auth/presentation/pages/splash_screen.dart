@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/widgets/university_crest.dart';
 import '../providers/auth_provider.dart';
 import '../../domain/entities/auth_user.dart';
 
@@ -93,46 +92,31 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.mulledWine,
-              AppColors.backgroundDark,
+      backgroundColor: AppColors.mulledWine,
+      body: Center(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/Logo.png',
+                width: 160,
+                height: 160,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'EDU Alumni\nConnect', // TODO: l10n
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                      height: 1.2,
+                    ),
+                textAlign: TextAlign.center,
+              ),
             ],
-          ),
-        ),
-        child: Center(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const UniversityCrest(size: 140, color: Colors.white),
-                const SizedBox(height: 24),
-                Text(
-                  'EDU Alumni', // TODO: l10n
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: AppColors.matcha,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Playfair Display',
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Connect', // TODO: l10n
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Playfair Display',
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
           ),
         ),
       ),

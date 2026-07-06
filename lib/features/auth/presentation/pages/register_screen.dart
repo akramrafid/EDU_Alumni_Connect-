@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/constants/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../shared/widgets/app_button.dart';
@@ -77,11 +78,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             batchYear: batchYear,
           );
       if (success && mounted) {
-        context.go(AppRoutes.verifyEmail);
+        if (AppConfig.useMock) {
+          context.go(AppRoutes.home);
+        } else {
+          context.go(AppRoutes.verifyEmail);
+        }
       }
     } else {
       final certificatePath = _certificatePathNotifier.value;
-      if (certificatePath == null) {
+      if (!AppConfig.useMock && certificatePath == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please upload a degree certificate or student ID for verification.'), // TODO: l10n
@@ -99,11 +104,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             batchYear: batchYear,
             currentCompany: _companyController.text.trim().isEmpty ? null : _companyController.text,
             jobTitle: _jobTitleController.text.trim().isEmpty ? null : _jobTitleController.text,
-            certificatePath: certificatePath,
+            certificatePath: certificatePath ?? '',
           );
 
       if (success && mounted) {
-        _showSuccessBottomSheet();
+        if (AppConfig.useMock) {
+          context.go(AppRoutes.home);
+        } else {
+          _showSuccessBottomSheet();
+        }
       }
     }
   }
@@ -271,7 +280,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               if (!email.contains('@')) {
                                 return 'Please enter a valid email'; // TODO: l10n
                               }
-                              if (isStudent && !email.toLowerCase().endsWith('@eastdelta.edu.bd')) {
+                              if (!AppConfig.useMock && isStudent && !email.toLowerCase().endsWith('@eastdelta.edu.bd')) {
                                 return 'Must be a university email (@eastdelta.edu.bd)'; // TODO: l10n
                               }
                               return null;

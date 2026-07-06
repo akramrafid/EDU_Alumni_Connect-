@@ -4,11 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../shared/widgets/app_button.dart';
-import '../../../../shared/widgets/app_card.dart';
-import '../../../../shared/widgets/app_text_field.dart';
-import '../../../../shared/widgets/university_crest.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -32,11 +27,65 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (_formKey.currentState!.validate()) {
-      await ref.read(signInNotifierProvider.notifier).signIn(
+      final success = await ref.read(signInNotifierProvider.notifier).signIn(
             _emailController.text,
             _passwordController.text,
           );
+      if (success && mounted) {
+        context.go(AppRoutes.home);
+      }
     }
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    bool isPassword = false,
+    bool enabled = true,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          obscureText: isPassword,
+          enabled: enabled,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: Colors.black38),
+            prefixIcon: Icon(icon, color: Colors.black38, size: 20),
+            suffixIcon: isPassword
+                ? const Icon(Icons.visibility_off_outlined,
+                    color: Colors.black38, size: 20)
+                : null,
+            filled: true,
+            fillColor: const Color(0xFFEFEAEA), // light grayish pink similar to design
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter $label';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
   }
 
   @override
@@ -48,7 +97,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         next.whenOrNull(
           error: (error, _) {
             // Cleanly parse error message for snackbar
-            final errorMessage = error is Exception 
+            final errorMessage = error is Exception
                 ? error.toString().replaceFirst('Exception: ', '')
                 : error.toString();
             ScaffoldMessenger.of(context).showSnackBar(
@@ -66,167 +115,223 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isLoading = signInState.isLoading;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Circular University Logo
-              const UniversityCrest(
-                size: 100,
+      backgroundColor: const Color(0xFFF7F4F3),
+      body: Stack(
+        children: [
+          // Top Dark Red Background
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.45,
+            child: Container(
+              decoration: const BoxDecoration(
                 color: AppColors.mulledWine,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(40),
+                  bottomRight: Radius.circular(40),
+                ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-
-              // Styled App Name
-              Text(
-                'EDU Alumni Connect', // TODO: l10n
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: AppColors.textPrimaryLight,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Playfair Display',
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Bank icon
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: const Icon(
+                        Icons.account_balance,
+                        color: Colors.white,
+                        size: 40,
+                      ),
                     ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Alumni Network',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Connecting graduates to opportunities globally.',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
+                    ),
+                    const SizedBox(height: 40), // Space for overlapping card
+                  ],
+                ),
               ),
-              const SizedBox(height: AppSpacing.xxl),
+            ),
+          ),
 
-              // Login Input Container
-              AppCard(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Welcome Back', // TODO: l10n
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimaryLight,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-
-                      // Email input
-                      AppTextField(
-                        controller: _emailController,
-                        label: 'University Email', // TODO: l10n
-                        hint: 'username@eastdelta.edu.bd', // TODO: l10n
-                        keyboardType: TextInputType.emailAddress,
-                        prefixIcon: const Icon(Icons.email_outlined),
-                        enabled: !isLoading,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter your email'; // TODO: l10n
-                          }
-                          final email = value.trim();
-                          if (!email.contains('@') || !email.endsWith('.edu.bd')) {
-                            return 'Please enter a valid university email'; // TODO: l10n
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-
-                      // Password input
-                      AppTextField(
-                        controller: _passwordController,
-                        label: 'Password', // TODO: l10n
-                        hint: '••••••••', // TODO: l10n
-                        obscureText: true,
-                        prefixIcon: const Icon(Icons.lock_outlined),
-                        enabled: !isLoading,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your password'; // TODO: l10n
-                          }
-                          if (value.length < 8) {
-                            return 'Password must be at least 8 characters'; // TODO: l10n
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-
-                      // Forgot Password Link
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: isLoading
-                              ? null
-                              : () {
-                                  // Placeholder for password reset feature
-                                },
-                          child: const Text(
-                            'Forgot Password?', // TODO: l10n
-                            style: TextStyle(
-                              color: AppColors.mulledWine,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-
-                      // Submit button
-                      AppButton(
-                        label: 'Sign In', // TODO: l10n
-                        onPressed: _submit,
-                        isLoading: isLoading,
-                        isFullWidth: true,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-
-                      // Decorative visual divider
-                      const Row(
-                        children: [
-                          Expanded(child: Divider()),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                            child: Text(
-                              'or', // TODO: l10n
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ),
-                          Expanded(child: Divider()),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-
-                      // Link to registration
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "New here?", // TODO: l10n
-                            style: TextStyle(color: AppColors.textSecondaryLight),
-                          ),
-                          TextButton(
-                            onPressed: isLoading
-                                ? null
-                                : () => context.push(AppRoutes.register),
-                            child: const Text(
-                              'Create Account', // TODO: l10n
-                              style: TextStyle(
-                                color: AppColors.mulledWine,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
+          // Floating Card with Login Form
+          SafeArea(
+            child: Align(
+              alignment: Alignment.center,
+              child: SingleChildScrollView(
+                child: Container(
+                  margin: const EdgeInsets.only(
+                      top: 180, left: 24, right: 24, bottom: 24),
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
                       ),
                     ],
                   ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Welcome Back',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Please enter your details to sign in.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Email Field
+                        _buildTextField(
+                          controller: _emailController,
+                          label: 'Email Address',
+                          hint: 'name@university.edu',
+                          icon: Icons.mail_outline,
+                          enabled: !isLoading,
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Password Field
+                        _buildTextField(
+                          controller: _passwordController,
+                          label: 'Password',
+                          hint: '••••••••',
+                          icon: Icons.lock_outline,
+                          isPassword: true,
+                          enabled: !isLoading,
+                        ),
+
+                        const SizedBox(height: 16),
+                        // Forgot Password
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: isLoading ? null : () {},
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text(
+                              'Forgot Password?',
+                              style: TextStyle(
+                                color: AppColors.mulledWine,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Login Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            onPressed: isLoading ? null : _submit,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.mulledWine,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 2),
+                                  )
+                                : const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Login',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(width: 8),
+                                      Icon(Icons.arrow_forward, size: 18),
+                                    ],
+                                  ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 32),
+                        const Divider(color: Color(0xFFEEEEEE)),
+                        const SizedBox(height: 24),
+
+                        // Sign Up Text
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              "Don't have an account? ",
+                              style: TextStyle(color: Colors.black54),
+                            ),
+                            GestureDetector(
+                              onTap: isLoading
+                                  ? null
+                                  : () => context.push(AppRoutes.profileSetup),
+                              child: const Text(
+                                'Sign up',
+                                style: TextStyle(
+                                  color: AppColors.mulledWine,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

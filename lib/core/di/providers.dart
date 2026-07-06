@@ -15,6 +15,7 @@ import '../../features/auth/domain/usecases/watch_auth_state_use_case.dart';
 
 import '../../core/constants/app_config.dart';
 import 'dummy_sources.dart';
+import 'mock_auth_repository.dart';
 
 part 'providers.g.dart';
 
@@ -54,6 +55,9 @@ IUserRemoteSource userRemoteSource(UserRemoteSourceRef ref) {
 
 @riverpod
 IAuthRepository authRepository(AuthRepositoryRef ref) {
+  if (AppConfig.useMock) {
+    return MockAuthRepository();
+  }
   return AuthRepositoryImpl(
     authRemoteSource: ref.watch(authRemoteSourceProvider),
     userRemoteSource: ref.watch(userRemoteSourceProvider),

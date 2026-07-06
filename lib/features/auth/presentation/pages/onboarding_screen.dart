@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,20 +14,13 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final PageController _pageController = PageController();
-  final ValueNotifier<int> _currentPageNotifier = ValueNotifier<int>(0);
+  String _selectedRole = 'student';
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    _currentPageNotifier.dispose();
-    super.dispose();
-  }
-
-  Future<void> _completeOnboarding() async {
+  Future<void> _getStarted() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('onboarding_seen', true);
+      await prefs.setString('selected_role', _selectedRole);
     } catch (_) {}
     if (mounted) {
       context.go(AppRoutes.login);
@@ -37,163 +29,119 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = [
-      _OnboardingPageData(
-        title: 'Connect with Alumni', // TODO: l10n
-        subtitle: 'Find and interact with East Delta University alumni from CSE, EEE, BBA, and more.', // TODO: l10n
-        badge1: '100+ Alumni', // TODO: l10n
-        badge2: 'Verified Mentors', // TODO: l10n
-        badge1Top: 40.0,
-        badge1Right: 10.0,
-        badge2Bottom: 30.0,
-        badge2Left: 10.0,
-      ),
-      _OnboardingPageData(
-        title: 'Find a Mentor', // TODO: l10n
-        subtitle: 'Request structured mentorship and receive professional career advice directly from graduates.', // TODO: l10n
-        badge1: 'Guidance', // TODO: l10n
-        badge2: 'Grow Faster', // TODO: l10n
-        badge1Top: 20.0,
-        badge1Left: 20.0,
-        badge2Bottom: 40.0,
-        badge2Right: 20.0,
-      ),
-      _OnboardingPageData(
-        title: 'Grow Together', // TODO: l10n
-        subtitle: 'Stay updated on campus events, RSVP, and discover career opportunities shared by your network.', // TODO: l10n
-        badge1: 'Post Jobs', // TODO: l10n
-        badge2: 'Attend Events', // TODO: l10n
-        badge1Top: 30.0,
-        badge1Right: 30.0,
-        badge2Bottom: 20.0,
-        badge2Left: 30.0,
-      ),
-    ];
-
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
+      backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
         child: Column(
           children: [
-            // Skip Button
-            Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
-                  vertical: AppSpacing.sm,
+            // Top Image Container
+            Container(
+              height: 220,
+              width: double.infinity,
+              margin: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3EAE8),
+                borderRadius: BorderRadius.circular(16),
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/onboarding_sphere.png'),
+                  fit: BoxFit.cover,
                 ),
-                child: TextButton(
-                  onPressed: _completeOnboarding,
-                  child: Text(
-                    'Skip', // TODO: l10n
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            
+            // Title & Subtitle
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              child: Column(
+                children: [
+                  const Text(
+                    'Who are you?',
                     style: TextStyle(
-                      color: AppColors.textSecondaryDark.withOpacity(0.8),
-                      fontWeight: FontWeight.w600,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
+                  const SizedBox(height: AppSpacing.md),
+                  const Text(
+                    'Select your role to personalize your\nnetworking experience and connect with the\nright community.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            
+            // Role Cards
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Column(
+                  children: [
+                    _RoleCard(
+                      title: "I'm a Student",
+                      subtitle: "Looking for mentorship, career advice, and to build my professional network.",
+                      icon: Icons.school,
+                      isSelected: _selectedRole == 'student',
+                      onTap: () {
+                        setState(() {
+                          _selectedRole = 'student';
+                        });
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _RoleCard(
+                      title: "I'm an Alumni",
+                      subtitle: "Want to give back, mentor students, and reconnect with fellow graduates.",
+                      icon: Icons.business_center,
+                      isSelected: _selectedRole == 'alumni',
+                      onTap: () {
+                        setState(() {
+                          _selectedRole = 'alumni';
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ),
             ),
             
-            // Onboarding Slides
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                onPageChanged: (index) => _currentPageNotifier.value = index,
-                itemCount: pages.length,
-                itemBuilder: (context, index) {
-                  return _buildPage(pages[index]);
-                },
-              ),
-            ),
-
-            // Navigation Bottom Section
+            // Get Started Button
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl,
-                vertical: AppSpacing.xl,
-              ),
-              child: ValueListenableBuilder<int>(
-                valueListenable: _currentPageNotifier,
-                builder: (context, currentPage, child) {
-                  final isLastPage = currentPage == pages.length - 1;
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _getStarted,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.mulledWine,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Indicator Dots
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          pages.length,
-                          (index) => _buildIndicator(index == currentPage),
+                      Text(
+                        'Get Started',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.xxl),
-
-                      // CTA Button
-                      AnimatedCrossFade(
-                        duration: const Duration(milliseconds: 250),
-                        crossFadeState: isLastPage
-                            ? CrossFadeState.showSecond
-                            : CrossFadeState.showFirst,
-                        firstChild: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const SizedBox(width: 48), // Spacer balance
-                            TextButton(
-                              onPressed: () {
-                                _pageController.nextPage(
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
-                                );
-                              },
-                              child: const Row(
-                                children: [
-                                  Text(
-                                    'Next', // TODO: l10n
-                                    style: TextStyle(
-                                      color: AppColors.matcha,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  SizedBox(width: AppSpacing.xs),
-                                  Icon(
-                                    Icons.arrow_forward,
-                                    color: AppColors.matcha,
-                                    size: 18,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        secondChild: SizedBox(
-                          width: double.infinity,
-                          child: FilledButton(
-                            onPressed: _completeOnboarding,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.matcha,
-                              foregroundColor: AppColors.onAccentDark,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(AppRadius.pill),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                            ),
-                            child: const Text(
-                              'Get Started', // TODO: l10n
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward, size: 20),
                     ],
-                  );
-                },
+                  ),
+                ),
               ),
             ),
           ],
@@ -201,170 +149,88 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
-
-  Widget _buildPage(_OnboardingPageData data) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: Column(
-        children: [
-          const Spacer(),
-          // Center 3D graphic with floating badges
-          SizedBox(
-            height: 280,
-            width: double.infinity,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Glassy sphere asset
-                Image.asset(
-                  'assets/images/onboarding_sphere.png',
-                  height: 240,
-                  width: 240,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    height: 200,
-                    width: 200,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          AppColors.matcha.withOpacity(0.3),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.diversity_3,
-                      size: 64,
-                      color: AppColors.matcha,
-                    ),
-                  ),
-                ),
-                
-                // Floating Badge 1
-                Positioned(
-                  top: data.badge1Top,
-                  left: data.badge1Left,
-                  right: data.badge1Right,
-                  bottom: data.badge1Bottom,
-                  child: _GlassmorphicBadge(label: data.badge1),
-                ),
-
-                // Floating Badge 2
-                Positioned(
-                  top: data.badge2Top,
-                  left: data.badge2Left,
-                  right: data.badge2Right,
-                  bottom: data.badge2Bottom,
-                  child: _GlassmorphicBadge(label: data.badge2),
-                ),
-              ],
-            ),
-          ),
-          const Spacer(),
-          
-          // Texts
-          Text(
-            data.title,
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontFamily: 'Playfair Display',
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            data.subtitle,
-            style: const TextStyle(
-              fontSize: 16,
-              color: AppColors.textSecondaryDark,
-              height: 1.5,
-              fontFamily: 'Inter',
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const Spacer(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIndicator(bool isActive) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-      height: 8,
-      width: isActive ? 24 : 8,
-      decoration: BoxDecoration(
-        color: isActive ? AppColors.matcha : AppColors.textSecondaryDark.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(4),
-      ),
-    );
-  }
 }
 
-class _OnboardingPageData {
+class _RoleCard extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String badge1;
-  final String badge2;
-  final double? badge1Top;
-  final double? badge1Left;
-  final double? badge1Right;
-  final double? badge1Bottom;
-  final double? badge2Top;
-  final double? badge2Left;
-  final double? badge2Right;
-  final double? badge2Bottom;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  _OnboardingPageData({
+  const _RoleCard({
     required this.title,
     required this.subtitle,
-    required this.badge1,
-    required this.badge2,
-    this.badge1Top,
-    this.badge1Left,
-    this.badge1Right,
-    this.badge1Bottom,
-    this.badge2Top,
-    this.badge2Left,
-    this.badge2Right,
-    this.badge2Bottom,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
   });
-}
-
-class _GlassmorphicBadge extends StatelessWidget {
-  final String label;
-
-  const _GlassmorphicBadge({required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(100),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(100),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.12),
-              width: 1,
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFF7EBEB) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? AppColors.mulledWine : Colors.grey.shade300,
+            width: 2,
           ),
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              fontFamily: 'Inter',
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Icon in circle
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.white : Colors.grey.shade100,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? AppColors.mulledWine : Colors.grey.shade600,
+                size: 28,
+              ),
             ),
-          ),
+            const SizedBox(width: 16),
+            // Text Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.black54,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Radio button indicator
+            Icon(
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              color: isSelected ? AppColors.mulledWine : Colors.grey.shade400,
+            ),
+          ],
         ),
       ),
     );
