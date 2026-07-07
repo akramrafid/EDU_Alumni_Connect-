@@ -25,7 +25,7 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
   String _selectedRole = 'student';
   String _selectedDepartment = 'CSE';
 
-  final List<String> _departments = ['CSE', 'EEE', 'BBA', 'English', 'CIVIL', 'LAW'];
+  final List<String> _departments = ['CSE', 'EEE', 'BBA', 'English', 'Economics', 'ETE'];
 
   @override
   void initState() {
