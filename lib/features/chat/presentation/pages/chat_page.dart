@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/custom_bottom_nav.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/app_routes.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -9,17 +10,10 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  int _currentIndex = 3; // 3 = Chat tab
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      extendBody: true,
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-      ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 24.0),
         child: FloatingActionButton(
@@ -47,7 +41,7 @@ class _ChatPageState extends State<ChatPage> {
                 itemBuilder: (context, index) {
                   if (index == 0) {
                     return _buildChatThreadCard(
-                      name: 'Sarah Jenkins',
+                      name: 'Saima Rahman',
                       message: 'Are we still on for the mentorship call tomorrow?',
                       time: '10:42 AM',
                       unreadCount: 2,
@@ -56,7 +50,7 @@ class _ChatPageState extends State<ChatPage> {
                     );
                   } else if (index == 1) {
                     return _buildChatThreadCard(
-                      name: 'David Chen',
+                      name: 'Tousif Ahmed',
                       message: 'Thanks for sharing that job posting. I applied this morning.',
                       time: 'Yesterday',
                       unreadCount: 0,
@@ -65,8 +59,8 @@ class _ChatPageState extends State<ChatPage> {
                     );
                   } else if (index == 2) {
                     return _buildChatThreadCard(
-                      name: 'Alumni Engineering Grc',
-                      message: 'Marcus: I think the new framework is worth discussing at the meetup.',
+                      name: 'Alumni Engineering Group',
+                      message: 'Mahir: I think the new framework is worth discussing at the meetup.',
                       time: 'Mon',
                       unreadCount: 0,
                       isOnline: false,
@@ -74,7 +68,7 @@ class _ChatPageState extends State<ChatPage> {
                     );
                   } else {
                     return _buildChatThreadCard(
-                      name: 'Elena Rodriguez',
+                      name: 'Ananya Chowdhury',
                       message: 'Sounds good. Let\'s catch up next week then.',
                       time: 'Oct 12',
                       unreadCount: 0,
@@ -105,9 +99,12 @@ class _ChatPageState extends State<ChatPage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const CircleAvatar(
-            radius: 18,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+          GestureDetector(
+            onTap: () => context.push('${AppRoutes.directory}/akram_rafid'),
+            child: const CircleAvatar(
+              radius: 18,
+              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+            ),
           ),
         ],
       ),
@@ -144,21 +141,23 @@ class _ChatPageState extends State<ChatPage> {
     String? avatarUrl,
     String? initials,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
+    return GestureDetector(
+      onTap: () => context.go('${AppRoutes.chat}/eleanor-vance'),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Stack(
@@ -263,6 +262,7 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

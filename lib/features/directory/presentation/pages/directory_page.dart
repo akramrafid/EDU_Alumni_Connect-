@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/custom_bottom_nav.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/app_routes.dart';
 
 class DirectoryPage extends StatefulWidget {
   const DirectoryPage({super.key});
@@ -9,20 +10,10 @@ class DirectoryPage extends StatefulWidget {
 }
 
 class _DirectoryPageState extends State<DirectoryPage> {
-  int _currentIndex = 1; // 1 is for Directory/Connect in the bottom nav
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      extendBody: true,
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() => _currentIndex = index);
-          // TODO: wire to actual navigation ShellRoute
-        },
-      ),
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -35,19 +26,19 @@ class _DirectoryPageState extends State<DirectoryPage> {
                 itemBuilder: (context, index) {
                   final mockData = [
                     {
-                      'name': 'Sarah Jenkins',
+                      'name': 'Saima Rahman',
                       'role': 'Senior Software Engineer at Google',
                       'image': 'https://i.pravatar.cc/150?img=5',
                       'tags': ['Class of \'18', 'San Francisco']
                     },
                     {
-                      'name': 'David Chen',
+                      'name': 'Tousif Ahmed',
                       'role': 'Director of Product at FinTech Solutions',
                       'image': 'https://i.pravatar.cc/150?img=11',
                       'tags': ['Class of \'05', 'New York']
                     },
                     {
-                      'name': 'Elena Rodriguez',
+                      'name': 'Ananya Chowdhury',
                       'role': 'UX Researcher at DesignCo',
                       'image': 'https://i.pravatar.cc/150?img=9',
                       'tags': ['Class of \'21', 'Austin']
@@ -61,6 +52,7 @@ class _DirectoryPageState extends State<DirectoryPage> {
                       role: person['role'] as String,
                       imageUrl: person['image'] as String,
                       tags: person['tags'] as List<String>,
+                      onTap: () => context.push('${AppRoutes.directory}/akram_rafid'),
                     ),
                   );
                 },
@@ -128,12 +120,14 @@ class _AlumniCard extends StatelessWidget {
   final String role;
   final String imageUrl;
   final List<String> tags;
+  final VoidCallback onTap;
 
   const _AlumniCard({
     required this.name,
     required this.role,
     required this.imageUrl,
     required this.tags,
+    required this.onTap,
   });
 
   @override
@@ -154,45 +148,49 @@ class _AlumniCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundImage: NetworkImage(imageUrl),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      role,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black54,
-                        height: 1.3,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: tags.map((tag) => _TagChip(label: tag)).toList(),
-                    ),
-                  ],
+          GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.opaque,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundImage: NetworkImage(imageUrl),
                 ),
-              ),
-            ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        role,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black54,
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: tags.map((tag) => _TagChip(label: tag)).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           ElevatedButton.icon(

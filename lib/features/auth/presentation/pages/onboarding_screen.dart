@@ -43,7 +43,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 color: const Color(0xFFF3EAE8),
                 borderRadius: BorderRadius.circular(16),
                 image: const DecorationImage(
-                  image: AssetImage('assets/images/onboarding_sphere.png'),
+                  image: AssetImage('assets/images/edu_img.jpg'),
                   fit: BoxFit.cover,
                 ),
               ),

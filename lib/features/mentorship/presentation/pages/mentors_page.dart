@@ -1,25 +1,20 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/custom_bottom_nav.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/app_routes.dart';
 
-class MentorsPage extends StatefulWidget {
+class MentorsPage extends ConsumerStatefulWidget {
   const MentorsPage({super.key});
 
   @override
-  State<MentorsPage> createState() => _MentorsPageState();
+  ConsumerState<MentorsPage> createState() => _MentorsPageState();
 }
 
-class _MentorsPageState extends State<MentorsPage> {
-  int _currentIndex = 4; // 4 = Profile/Mentors based on Figma
-
+class _MentorsPageState extends ConsumerState<MentorsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      extendBody: true,
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-      ),
       body: Column(
         children: [
           _buildHeader(),
@@ -31,7 +26,7 @@ class _MentorsPageState extends State<MentorsPage> {
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return _buildMentorCard(
-                    name: 'Sarah Jenkins',
+                    name: 'Saima Rahman',
                     role: 'Product Director @ TechFlow',
                     image: 'https://i.pravatar.cc/150?img=5',
                     tags: ['Technology', 'Product Mgmt', 'Class of \'14'],
@@ -40,7 +35,7 @@ class _MentorsPageState extends State<MentorsPage> {
                   );
                 } else if (index == 1) {
                   return _buildMentorCard(
-                    name: 'Marcus Thorne',
+                    name: 'Mahir Chowdhury',
                     role: 'VP Finance @ Apex Cap',
                     image: 'https://i.pravatar.cc/150?img=11',
                     tags: ['Finance', 'Inv. Banking', 'Class of \'08'],
@@ -49,7 +44,7 @@ class _MentorsPageState extends State<MentorsPage> {
                   );
                 } else if (index == 2) {
                   return _buildMentorCard(
-                    name: 'Elena Rostova',
+                    name: 'Ananya Chowdhury',
                     role: 'Senior Data Scientist @ AI Dynamics',
                     image: 'https://i.pravatar.cc/150?img=9',
                     tags: ['Data Science', 'Machine Learning', 'Class of \'18'],
@@ -58,7 +53,7 @@ class _MentorsPageState extends State<MentorsPage> {
                   );
                 } else {
                   return _buildMentorCard(
-                    name: 'David Chen',
+                    name: 'Tousif Ahmed',
                     role: 'Founder @ GreenTech Solutions',
                     image: 'https://i.pravatar.cc/150?img=12',
                     tags: ['Entrepreneurship', 'Sustainability', 'Class of \'11'],
@@ -87,9 +82,12 @@ class _MentorsPageState extends State<MentorsPage> {
         children: [
           Row(
             children: [
-              const CircleAvatar(
-                radius: 18,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+              GestureDetector(
+                onTap: () => context.push('${AppRoutes.directory}/akram_rafid'),
+                child: const CircleAvatar(
+                  radius: 18,
+                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                ),
               ),
               const SizedBox(width: 12),
               const Text(

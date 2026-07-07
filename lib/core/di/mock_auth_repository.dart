@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:fpdart/fpdart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../errors/failures.dart';
 import '../../features/auth/domain/entities/auth_user.dart';
@@ -21,10 +22,17 @@ class MockAuthRepository implements IAuthRepository {
   Future<Either<Failure, AuthUser>> signIn(String email, String password) async {
     // Accept any non-empty email/password combination
     await Future.delayed(const Duration(milliseconds: 300));
+    
+    String selectedRole = 'student';
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      selectedRole = prefs.getString('selected_role') ?? 'student';
+    } catch (_) {}
+    
     final user = AuthUser(
       uid: 'mock_uid_${DateTime.now().millisecondsSinceEpoch}',
       email: email,
-      role: UserRole.student,
+      role: selectedRole == 'alumni' ? UserRole.alumni : UserRole.student,
       verificationStatus: VerificationStatus.verified,
       fullName: email.split('@').first,
       isEmailVerified: true,

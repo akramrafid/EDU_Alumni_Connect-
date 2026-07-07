@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class AlumniProfilePage extends StatelessWidget {
   const AlumniProfilePage({super.key});
@@ -63,9 +64,7 @@ class AlumniProfilePage extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      // TODO: wire back navigation (go_router pop)
-                    },
+                    onPressed: () => context.pop(),
                   ),
                   IconButton(
                     icon: const Icon(Icons.more_vert, color: Colors.white),
@@ -444,9 +443,7 @@ class AlumniProfilePage extends StatelessWidget {
           Icon(Icons.chat_bubble_outline, color: Colors.white, size: 20),
           SizedBox(width: 8),
           Text(
-            // ASSUMPTION: The text in the Figma design says "Message Eleanor", 
-            // but the profile name is "Akram Rafid". I've transcribed exactly what's visible.
-            'Message Eleanor',
+            'Message Akram Rafid',
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,

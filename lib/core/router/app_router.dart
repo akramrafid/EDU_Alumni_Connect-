@@ -14,20 +14,22 @@ import '../../features/auth/presentation/pages/login_screen.dart';
 import '../../features/auth/presentation/pages/register_screen.dart';
 import '../../features/auth/presentation/pages/profile_setup_page.dart';
 import '../../features/auth/presentation/pages/verification_pending_screen.dart';
-import '../../features/directory/presentation/pages/directory_screen.dart';
-import '../../features/directory/presentation/pages/alumni_detail_screen.dart';
+import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/directory/presentation/pages/directory_page.dart';
+import '../../features/directory/presentation/pages/alumni_profile_page.dart';
 import '../../features/mentorship/presentation/pages/mentorship_screen.dart';
 import '../../features/mentorship/presentation/pages/mentorship_detail_screen.dart';
-import '../../features/chat/presentation/pages/conversations_screen.dart';
-import '../../features/chat/presentation/pages/chat_screen.dart';
-import '../../features/events/presentation/pages/events_screen.dart';
-import '../../features/events/presentation/pages/event_detail_screen.dart';
-import '../../features/jobs/presentation/pages/jobs_screen.dart';
+import '../../features/chat/presentation/pages/chat_page.dart';
+import '../../features/chat/presentation/pages/chat_detail_page.dart';
+import '../../features/events/presentation/pages/events_page.dart';
+import '../../features/events/presentation/pages/event_details_page.dart';
+import '../../features/jobs/presentation/pages/opportunities_page.dart';
 import '../../features/jobs/presentation/pages/job_detail_screen.dart';
-import '../../features/profile/presentation/pages/profile_screen.dart';
+import '../../features/mentorship/presentation/pages/mentors_page.dart';
 import '../../features/profile/presentation/pages/edit_profile_screen.dart';
 import '../../features/notifications/presentation/pages/notifications_screen.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_screen.dart';
+import '../widgets/custom_bottom_nav.dart';
 
 part 'app_router.g.dart';
 
@@ -42,7 +44,6 @@ GoRouter router(RouterRef ref) {
     navigatorKey: _rootNavigatorKey,
     initialLocation: AppRoutes.splash,
     redirect: (context, state) {
-      // If auth state is loading, wait before redirecting
       if (authStateAsync.isLoading) return null;
 
       final user = authStateAsync.value;
@@ -54,25 +55,21 @@ GoRouter router(RouterRef ref) {
           matchedLocation == AppRoutes.onboarding ||
           matchedLocation == AppRoutes.splash;
 
-      // Unauthenticated users are redirected to login, unless they are already on an auth page
       if (user == null) {
         return isAuthPage ? null : AppRoutes.login;
       }
 
-      // Alumni whose verification is pending are forced to the pending page
       if (user.role == UserRole.alumni &&
           user.verificationStatus == VerificationStatus.pending) {
         return matchedLocation == '/pending' ? null : '/pending';
       }
 
-      // Role-based gate for Web Admin panel
       if (matchedLocation.startsWith(AppRoutes.admin)) {
         if (user.role != UserRole.admin) {
           return AppRoutes.home;
         }
       }
 
-      // Logged in users on auth pages are redirected home
       if (isAuthPage) {
         return AppRoutes.home;
       }
@@ -109,10 +106,6 @@ GoRouter router(RouterRef ref) {
         builder: (context, state) => const VerificationPendingScreen(),
       ),
       GoRoute(
-        path: AppRoutes.home,
-        redirect: (context, state) => AppRoutes.directory,
-      ),
-      GoRoute(
         path: AppRoutes.admin,
         builder: (context, state) => const AdminDashboardScreen(),
       ),
@@ -129,12 +122,17 @@ GoRouter router(RouterRef ref) {
         },
         routes: [
           GoRoute(
+            path: AppRoutes.home,
+            builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
             path: AppRoutes.directory,
-            builder: (context, state) => const DirectoryScreen(),
+            builder: (context, state) => const DirectoryPage(),
             routes: [
               GoRoute(
                 path: ':alumniId',
-                builder: (context, state) => const AlumniDetailScreen(),
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => const AlumniProfilePage(),
               ),
             ],
           ),
@@ -150,17 +148,18 @@ GoRouter router(RouterRef ref) {
           ),
           GoRoute(
             path: AppRoutes.chat,
-            builder: (context, state) => const ConversationsScreen(),
+            builder: (context, state) => const ChatPage(),
             routes: [
               GoRoute(
                 path: ':conversationId',
-                builder: (context, state) => const ChatScreen(),
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => const ChatDetailPage(),
               ),
             ],
           ),
           GoRoute(
             path: AppRoutes.profile,
-            builder: (context, state) => const ProfileScreen(),
+            builder: (context, state) => const MentorsPage(),
             routes: [
               GoRoute(
                 path: 'edit',
@@ -170,17 +169,18 @@ GoRouter router(RouterRef ref) {
           ),
           GoRoute(
             path: AppRoutes.events,
-            builder: (context, state) => const EventsScreen(),
+            builder: (context, state) => const EventsPage(),
             routes: [
               GoRoute(
                 path: ':eventId',
-                builder: (context, state) => const EventDetailScreen(),
+                parentNavigatorKey: _rootNavigatorKey,
+                builder: (context, state) => EventDetailsPage(eventId: state.pathParameters['eventId']),
               ),
             ],
           ),
           GoRoute(
             path: AppRoutes.jobs,
-            builder: (context, state) => const JobsScreen(),
+            builder: (context, state) => const OpportunitiesPage(),
             routes: [
               GoRoute(
                 path: ':jobId',
@@ -201,25 +201,29 @@ class MainShell extends StatelessWidget {
 
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith(AppRoutes.directory)) return 0;
-    if (location.startsWith(AppRoutes.mentorship)) return 1;
-    if (location.startsWith(AppRoutes.chat)) return 2;
-    if (location.startsWith(AppRoutes.profile)) return 3;
-    return 0;
+    if (location.startsWith(AppRoutes.home)) return 0;
+    if (location.startsWith(AppRoutes.directory)) return 1;
+    if (location.startsWith(AppRoutes.events)) return 2;
+    if (location.startsWith(AppRoutes.chat)) return 3;
+    if (location.startsWith(AppRoutes.profile)) return 4;
+    return -1;
   }
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
-        context.go(AppRoutes.directory);
+        context.go(AppRoutes.home);
         break;
       case 1:
-        context.go(AppRoutes.mentorship);
+        context.go(AppRoutes.directory);
         break;
       case 2:
-        context.go(AppRoutes.chat);
+        context.go(AppRoutes.events);
         break;
       case 3:
+        context.go(AppRoutes.chat);
+        break;
+      case 4:
         context.go(AppRoutes.profile);
         break;
     }
@@ -228,28 +232,11 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: child,
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: CustomBottomNav(
         currentIndex: _calculateSelectedIndex(context),
         onTap: (index) => _onItemTapped(index, context),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Directory', // TODO: l10n
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school),
-            label: 'Mentorship', // TODO: l10n
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat', // TODO: l10n
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile', // TODO: l10n
-          ),
-        ],
       ),
     );
   }

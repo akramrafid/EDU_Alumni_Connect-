@@ -150,7 +150,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         size: 40,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     const Text(
                       'Alumni Network',
                       style: TextStyle(
@@ -160,7 +160,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 16),
                     const Text(
                       'Connecting graduates to opportunities globally.',
                       style: TextStyle(
@@ -223,7 +223,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         _buildTextField(
                           controller: _emailController,
                           label: 'Email Address',
-                          hint: 'name@university.edu',
+                          hint: 'id@eastdelta.edu.bd',
                           icon: Icons.mail_outline,
                           enabled: !isLoading,
                         ),

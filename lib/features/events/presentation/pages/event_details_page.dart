@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../data/models/mock_event.dart';
 
 class EventDetailsPage extends StatelessWidget {
-  const EventDetailsPage({super.key});
+  final String? eventId;
+  const EventDetailsPage({super.key, this.eventId});
 
   @override
   Widget build(BuildContext context) {
+    final event = mockEvents.firstWhere(
+      (e) => e.id == eventId,
+      orElse: () => mockEvents.first,
+    );
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -13,9 +21,7 @@ class EventDetailsPage extends StatelessWidget {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () {
-            // TODO: wire to context.pop()
-          },
+          onPressed: () => context.pop(),
         ),
         title: const Text(
           'Event Details',
@@ -35,7 +41,7 @@ class EventDetailsPage extends StatelessWidget {
               children: [
                 // Header Image
                 Image.network(
-                  'https://images.unsplash.com/photo-1540575467063-178a50c2df87?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+                  event.image,
                   height: 200,
                   fit: BoxFit.cover,
                 ),
@@ -46,15 +52,15 @@ class EventDetailsPage extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          _buildTag('Networking'),
+                          _buildTag(event.tag),
                           const SizedBox(width: 8),
                           _buildTag('Alumni'),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Annual Fall Alumni Gala & Networking Mixer',
-                        style: TextStyle(
+                      Text(
+                        event.title,
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
@@ -67,10 +73,10 @@ class EventDetailsPage extends StatelessWidget {
                         children: [
                           const Icon(Icons.calendar_today, size: 20, color: Color(0xFF700000)),
                           const SizedBox(width: 12),
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Saturday, October 28, 2024 • 6:00 PM - 10:00 PM',
-                              style: TextStyle(
+                              '${event.date} • ${event.time}',
+                              style: const TextStyle(
                                 fontSize: 14,
                                 color: Colors.black87,
                                 height: 1.4,
@@ -85,10 +91,10 @@ class EventDetailsPage extends StatelessWidget {
                         children: [
                           const Icon(Icons.location_on_outlined, size: 20, color: Color(0xFF700000)),
                           const SizedBox(width: 12),
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'East Delta University Campus',
-                              style: TextStyle(
+                              event.location,
+                              style: const TextStyle(
                                 fontSize: 14,
                                 color: Colors.black87,
                               ),
@@ -108,18 +114,18 @@ class EventDetailsPage extends StatelessWidget {
                       const SizedBox(height: 8),
                       const Divider(),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Join us for our most anticipated event of the year. The Annual Fall Alumni Gala brings together distinguished graduates, faculty, and industry leaders for an evening of connection and celebration.\n\nThis year, we are focusing on cross-industry innovation. Expect a curated evening featuring a keynote address from our notable alumni in the tech sector, followed by structured networking sessions designed to foster meaningful professional relationships.\n\nDress code is business formal. Drinks and a multi-course dinner will be provided.',
-                        style: TextStyle(
+                      Text(
+                        event.description,
+                        style: const TextStyle(
                           fontSize: 14,
                           color: Colors.black54,
                           height: 1.6,
                         ),
                       ),
                       const SizedBox(height: 24),
-                      _buildAttendeesCard(),
+                      _buildAttendeesCard(event),
                       const SizedBox(height: 16),
-                      _buildLocationCard(),
+                      _buildLocationCard(event),
                     ],
                   ),
                 ),
@@ -155,7 +161,7 @@ class EventDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAttendeesCard() {
+  Widget _buildAttendeesCard(MockEvent event) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -189,9 +195,9 @@ class EventDetailsPage extends StatelessWidget {
                   color: const Color(0xFF700000),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
-                  '142 Attending',
-                  style: TextStyle(
+                child: Text(
+                  '${event.attendees} Attending',
+                  style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -215,10 +221,10 @@ class EventDetailsPage extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 2),
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
-                    '+138',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                    '+${event.maxAttendees - 4}',
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -253,7 +259,7 @@ class EventDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildLocationCard() {
+  Widget _buildLocationCard(MockEvent event) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -291,10 +297,10 @@ class EventDetailsPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Center(
+          Center(
             child: Text(
-              '1200 University Ave, City, ST 12345',
-              style: TextStyle(
+              event.location,
+              style: const TextStyle(
                 fontSize: 12,
                 color: Colors.black54,
               ),

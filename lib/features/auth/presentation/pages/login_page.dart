@@ -88,7 +88,7 @@ class LoginPage extends StatelessWidget {
                       const SizedBox(height: 32),
                       const _CustomTextField(
                         label: 'Email Address',
-                        hint: 'name@university.edu',
+                        hint: 'id@eastdelta.edu.bd',
                         prefixIcon: Icons.mail_outline,
                       ),
                       const SizedBox(height: 20),

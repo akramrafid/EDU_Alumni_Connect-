@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/custom_bottom_nav.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/app_routes.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
-class OpportunitiesPage extends StatefulWidget {
+class OpportunitiesPage extends ConsumerStatefulWidget {
   const OpportunitiesPage({super.key});
 
   @override
-  State<OpportunitiesPage> createState() => _OpportunitiesPageState();
+  ConsumerState<OpportunitiesPage> createState() => _OpportunitiesPageState();
 }
 
-class _OpportunitiesPageState extends State<OpportunitiesPage> {
-  int _currentIndex = 1; // 1 = Sync/Connect
-
+class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      extendBody: true,
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-      ),
       body: Column(
         children: [
           _buildHeader(),
@@ -81,6 +77,10 @@ class _OpportunitiesPageState extends State<OpportunitiesPage> {
   }
 
   Widget _buildHeader() {
+    final userAsync = ref.watch(currentUserProvider);
+    final user = userAsync.value;
+    final String welcomeRole = user?.role.name == 'alumni' ? 'Alumni' : 'Student';
+
     return Container(
       height: 120,
       decoration: const BoxDecoration(
@@ -93,14 +93,17 @@ class _OpportunitiesPageState extends State<OpportunitiesPage> {
         children: [
           Row(
             children: [
-              const CircleAvatar(
-                radius: 18,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+              GestureDetector(
+                onTap: () => context.push('${AppRoutes.directory}/akram_rafid'),
+                child: const CircleAvatar(
+                  radius: 18,
+                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'Welcome, Alumni',
-                style: TextStyle(
+              Text(
+                'Welcome, $welcomeRole',
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,

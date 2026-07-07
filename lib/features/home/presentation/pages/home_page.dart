@@ -1,28 +1,22 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/custom_bottom_nav.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/constants/app_routes.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../events/data/models/mock_event.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  int _currentIndex = 0;
-
+class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA), // Off-white background
-      extendBody: true, // For floating bottom nav
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() => _currentIndex = index);
-          // TODO: wire to actual navigation (e.g., go_router ShellRoute)
-        },
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(bottom: 120), // Space for bottom nav
         child: Column(
@@ -40,6 +34,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHeaderAndStats() {
+    final userAsync = ref.watch(currentUserProvider);
+    final user = userAsync.value;
+    final String welcomeRole = user?.role.name == 'alumni' ? 'Alumni' : 'Student';
+    final String greetingName = user?.fullName != null && 
+            user!.fullName.isNotEmpty && 
+            !user.fullName.contains('@') && 
+            user.fullName != 'student' && 
+            user.fullName != 'alumni'
+        ? user.fullName
+        : 'Arif';
+
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
@@ -65,18 +70,21 @@ class _HomePageState extends State<HomePage> {
             children: [
               Row(
                 children: [
-                  const CircleAvatar(
-                    radius: 28,
-                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'), // Placeholder
+                  GestureDetector(
+                    onTap: () => context.push('${AppRoutes.directory}/akram_rafid'),
+                    child: const CircleAvatar(
+                      radius: 28,
+                      backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'), // Placeholder
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'Welcome, Alumni',
-                        style: TextStyle(
+                      Text(
+                        'Welcome, $welcomeRole',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -84,7 +92,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Good morning, Alex',
+                        'Good morning, $greetingName',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.8),
                           fontSize: 14,
@@ -156,15 +164,27 @@ class _HomePageState extends State<HomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _QuickActionBtn(icon: Icons.autorenew, label: 'Directory', onTap: () {}),
-              _QuickActionBtn(icon: Icons.calendar_today, label: 'Events', onTap: () {}),
+              _QuickActionBtn(
+                icon: Icons.autorenew,
+                label: 'Directory',
+                onTap: () => context.go(AppRoutes.directory),
+              ),
+              _QuickActionBtn(
+                icon: Icons.calendar_today,
+                label: 'Events',
+                onTap: () => context.go(AppRoutes.events),
+              ),
               _QuickActionBtn(
                 icon: Icons.chat_bubble_outline,
                 label: 'Chat',
                 hasNotification: true,
-                onTap: () {},
+                onTap: () => context.go(AppRoutes.chat),
               ),
-              _QuickActionBtn(icon: Icons.work_outline, label: 'Jobs', onTap: () {}),
+              _QuickActionBtn(
+                icon: Icons.work_outline,
+                label: 'Jobs',
+                onTap: () => context.go(AppRoutes.jobs),
+              ),
             ],
           ),
         ],
@@ -190,7 +210,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () => context.go(AppRoutes.events),
                 child: const Text(
                   'View All',
                   style: TextStyle(
@@ -208,20 +228,22 @@ class _HomePageState extends State<HomePage> {
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             scrollDirection: Axis.horizontal,
-            itemCount: 2, // Mock count
+            itemCount: mockEvents.length,
             itemBuilder: (context, index) {
+              final event = mockEvents[index];
               return Padding(
                 padding: const EdgeInsets.only(right: 16.0),
-                child: _EventCard(
-                  tag: index == 0 ? 'NETWORKING' : 'WEBINAR',
-                  date: 'Oct 24',
-                  time: '6:00 PM',
-                  title: index == 0
-                      ? 'Annual Alumni Gala & Charity Dinner'
-                      : 'Tech Leadership Future 2024',
-                  location: index == 0 ? 'Grand Ballroom, City Center' : 'Virtual Event (Zoom)',
-                  attendees: index == 0 ? 120 : 85,
-                  maxAttendees: index == 0 ? 150 : 200,
+                child: GestureDetector(
+                  onTap: () => context.push('${AppRoutes.events}/${event.id}'),
+                  child: _EventCard(
+                    tag: event.tag,
+                    date: event.date,
+                    time: event.time,
+                    title: event.title,
+                    location: event.location,
+                    attendees: event.attendees,
+                    maxAttendees: event.maxAttendees,
+                  ),
                 ),
               );
             },

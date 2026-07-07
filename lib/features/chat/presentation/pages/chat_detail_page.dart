@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ChatDetailPage extends StatelessWidget {
   const ChatDetailPage({super.key});
@@ -12,9 +13,7 @@ class ChatDetailPage extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            // TODO: context.pop()
-          },
+          onPressed: () => context.pop(),
         ),
         title: Row(
           children: [
@@ -27,7 +26,7 @@ class ChatDetailPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
                 Text(
-                  'Dr. Eleanor Vance',
+                  'Dr. Ananya Chowdhury',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
