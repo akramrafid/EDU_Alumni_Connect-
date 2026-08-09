@@ -144,6 +144,28 @@ class ProfileScreen extends ConsumerWidget {
                       children: [
                         SizedBox(
                           width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => context.push('${AppRoutes.profile}/edit'),
+                            icon: const Icon(Icons.edit, color: Colors.white),
+                            label: const Text(
+                              'Edit Profile',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.mulledWine,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
                           child: OutlinedButton.icon(
                             onPressed: () {
                               ref.read(signOutUseCaseProvider).call();
