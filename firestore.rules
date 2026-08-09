@@ -1,0 +1,135 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── DEFAULT DENY ────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ─── HELPER FUNCTIONS ────────────────────────────────────────────
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.role == 'admin';
+    }
+
+    function isAlumni() {
+      return isAuthenticated() && request.auth.token.role == 'alumni';
+    }
+
+    // Returns the set of field keys that actually changed between old and new.
+    function changedFields() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // ─── USERS ───────────────────────────────────────────────────────
+    // Owner reads own profile. Owner updates non-sensitive fields only.
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+
+      allow create: if isOwner(uid);
+
+      allow update: if isOwner(uid)
+                    && !changedFields()
+                        .hasAny(['role', 'verificationStatus',
+                                 'certificateUrl', 'email', 'uid']);
+
+      // Admin can update verificationStatus (fallback for direct admin edits)
+      allow update: if isAdmin();
+    }
+
+    // ─── ALUMNI DIRECTORY ────────────────────────────────────────────
+    // Denormalized public-read collection. Only Cloud Functions write.
+    match /alumniDirectory/{uid} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // ─── MENTORSHIP REQUESTS ─────────────────────────────────────────
+    // Participants can read their own requests. All mutations via Cloud Functions.
+    match /mentorshipRequests/{requestId} {
+      allow read: if isAuthenticated()
+                  && (resource.data.studentId == request.auth.uid
+                      || resource.data.alumniId == request.auth.uid);
+      allow create: if false; // CF-03 only
+      allow update: if false; // CF-04 only
+      allow delete: if false;
+    }
+
+    // ─── CONVERSATIONS ───────────────────────────────────────────────
+    match /conversations/{conversationId} {
+      function isParticipant() {
+        return isAuthenticated()
+               && request.auth.uid in resource.data.participantIds;
+      }
+
+      allow read: if isParticipant();
+
+      // Clients can only update their own unreadCount entry
+      allow update: if isParticipant()
+                    && changedFields().hasOnly(['unreadCount']);
+
+      allow create: if false; // CF-08 only
+
+      // ─── MESSAGES (subcollection) ────────────────────────────────
+      match /messages/{messageId} {
+        allow read: if isAuthenticated()
+                    && request.auth.uid in
+                       get(/databases/$(database)/documents/conversations/$(conversationId))
+                       .data.participantIds;
+
+        allow create: if isAuthenticated()
+                      && request.auth.uid in
+                         get(/databases/$(database)/documents/conversations/$(conversationId))
+                         .data.participantIds
+                      && request.resource.data.senderId == request.auth.uid;
+
+        allow update, delete: if false;
+      }
+    }
+
+    // ─── EVENTS ──────────────────────────────────────────────────────
+    // Any authenticated user can read. All writes via Cloud Functions.
+    match /events/{eventId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // CF-05 (RSVP) and CF-07 (create) only
+    }
+
+    // ─── JOB POSTINGS ────────────────────────────────────────────────
+    match /jobPostings/{jobId} {
+      allow read: if isAuthenticated();
+
+      allow create: if false; // CF-06 only
+
+      // Poster can close their own listing; admin can close any
+      allow update: if isAuthenticated()
+                    && (resource.data.postedByAlumniId == request.auth.uid
+                        || isAdmin())
+                    && changedFields().hasOnly(['status']);
+
+      allow delete: if isAdmin();
+    }
+
+    // ─── NOTIFICATIONS ───────────────────────────────────────────────
+    // Subcollection under the recipient user. Only owner reads/updates/deletes.
+    // Cloud Functions write.
+    match /notifications/{uid}/items/{notificationId} {
+      allow read: if isOwner(uid);
+
+      // Owner can mark as read
+      allow update: if isOwner(uid)
+                    && changedFields().hasOnly(['read']);
+
+      allow delete: if isOwner(uid);
+
+      allow create: if false; // Cloud Functions only
+    }
+  }
+}

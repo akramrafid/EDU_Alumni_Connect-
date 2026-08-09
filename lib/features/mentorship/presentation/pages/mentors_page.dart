@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../directory/data/models/alumni_directory_model.dart';
+import '../../../directory/presentation/providers/directory_provider.dart';
+import '../providers/mentorship_provider.dart';
 
 class MentorsPage extends ConsumerStatefulWidget {
   const MentorsPage({super.key});
@@ -11,8 +16,97 @@ class MentorsPage extends ConsumerStatefulWidget {
 }
 
 class _MentorsPageState extends ConsumerState<MentorsPage> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _showRequestDialog(AlumniDirectoryModel mentor) {
+    final messageController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Request Mentorship from ${mentor.fullName}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Introduce yourself and state what goals you hope to achieve:',
+              style: TextStyle(fontSize: 13, color: Colors.black54),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: messageController,
+              maxLines: 4,
+              decoration: InputDecoration(
+                hintText: 'Hi ${mentor.fullName}, I would love your guidance on...',
+                filled: true,
+                fillColor: const Color(0xFFF5F5F5),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final text = messageController.text.trim();
+              if (text.length < 10) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Please enter at least 10 characters.'),
+                  ),
+                );
+                return;
+              }
+              Navigator.pop(context);
+              final success = await ref
+                  .read(mentorshipActionNotifierProvider.notifier)
+                  .sendRequest(alumniId: mentor.uid, message: text);
+
+              if (mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Mentorship request sent successfully!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Failed to send request.'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.mulledWine,
+            ),
+            child: const Text('Send Request'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final mentorsAsync = ref.watch(mentorsListProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: Column(
@@ -20,47 +114,35 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
           _buildHeader(),
           _buildSearchBar(),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
-              itemCount: 4,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return _buildMentorCard(
-                    name: 'Saima Rahman',
-                    role: 'Product Director @ TechFlow',
-                    image: 'https://i.pravatar.cc/150?img=5',
-                    tags: ['Technology', 'Product Mgmt', 'Class of \'14'],
-                    bio: 'Passionate about building scalable B2B SaaS products. Happy to review resumes, prep for...',
-                    isPending: false,
-                  );
-                } else if (index == 1) {
-                  return _buildMentorCard(
-                    name: 'Mahir Chowdhury',
-                    role: 'VP Finance @ Apex Cap',
-                    image: 'https://i.pravatar.cc/150?img=11',
-                    tags: ['Finance', 'Inv. Banking', 'Class of \'08'],
-                    bio: 'Over 15 years in M&A and corporate finance. Looking to mentor driven recent grads...',
-                    isPending: false,
-                  );
-                } else if (index == 2) {
-                  return _buildMentorCard(
-                    name: 'Ananya Chowdhury',
-                    role: 'Senior Data Scientist @ AI Dynamics',
-                    image: 'https://i.pravatar.cc/150?img=9',
-                    tags: ['Data Science', 'Machine Learning', 'Class of \'18'],
-                    bio: 'Specializing in NLP and predictive modeling. Can help with portfolio reviews, algorithmic...',
-                    isPending: false,
-                  );
-                } else {
-                  return _buildMentorCard(
-                    name: 'Tousif Ahmed',
-                    role: 'Founder @ GreenTech Solutions',
-                    image: 'https://i.pravatar.cc/150?img=12',
-                    tags: ['Entrepreneurship', 'Sustainability', 'Class of \'11'],
-                    bio: 'Navigating early-stage funding and sustainable business models. Happy to chat...',
-                    isPending: true,
-                  );
-                }
+            child: mentorsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+              data: (mentors) {
+                final displayMentors = mentors.isNotEmpty
+                    ? mentors
+                    : _mockFallbackMentors();
+
+                final filtered = _searchController.text.trim().isEmpty
+                    ? displayMentors
+                    : displayMentors
+                        .where((m) =>
+                            m.fullName.toLowerCase().contains(
+                                _searchController.text.trim().toLowerCase()) ||
+                            m.displayRole.toLowerCase().contains(
+                                _searchController.text.trim().toLowerCase()))
+                        .toList();
+
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final mentor = filtered[index];
+                    return _buildMentorCard(
+                      mentor: mentor,
+                      onRequest: () => _showRequestDialog(mentor),
+                    );
+                  },
+                );
               },
             ),
           ),
@@ -73,7 +155,7 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
     return Container(
       height: 120,
       decoration: const BoxDecoration(
-        color: Color(0xFF700000),
+        color: AppColors.mulledWine,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
       ),
       padding: const EdgeInsets.fromLTRB(24, 50, 24, 0),
@@ -83,10 +165,11 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
           Row(
             children: [
               GestureDetector(
-                onTap: () => context.push('${AppRoutes.directory}/akram_rafid'),
+                onTap: () => context.push(AppRoutes.profile),
                 child: const CircleAvatar(
                   radius: 18,
-                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                  backgroundImage:
+                      NetworkImage('https://i.pravatar.cc/150?img=11'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -102,7 +185,7 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
           ),
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.white),
-            onPressed: () {},
+            onPressed: () => context.push(AppRoutes.notifications),
           ),
         ],
       ),
@@ -120,52 +203,22 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 5)),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
               ],
             ),
-            child: const TextField(
-              decoration: InputDecoration(
+            child: TextField(
+              controller: _searchController,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
                 icon: Icon(Icons.search, color: Colors.black54),
                 hintText: 'Search by name, industry, or company...',
                 hintStyle: TextStyle(color: Colors.black38, fontSize: 14),
                 border: InputBorder.none,
               ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              _buildFilterChip('All Industries', Icons.tune),
-              const SizedBox(width: 8),
-              _buildFilterChip('Location', null),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label, IconData? icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 14, color: Colors.black54),
-            const SizedBox(width: 6),
-          ],
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
             ),
           ),
         ],
@@ -174,13 +227,15 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
   }
 
   Widget _buildMentorCard({
-    required String name,
-    required String role,
-    required String image,
-    required List<String> tags,
-    required String bio,
-    required bool isPending,
+    required AlumniDirectoryModel mentor,
+    required VoidCallback onRequest,
   }) {
+    final tags = [
+      mentor.department,
+      mentor.classYear,
+      if (mentor.skills.isNotEmpty) mentor.skills.first,
+    ];
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -203,7 +258,9 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundImage: NetworkImage(image),
+                backgroundImage: NetworkImage(
+                  mentor.photoUrl ?? 'https://i.pravatar.cc/150?img=5',
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -211,7 +268,7 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name,
+                      mentor.fullName,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -220,7 +277,7 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      role,
+                      mentor.displayRole,
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.black54,
@@ -229,7 +286,6 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
                   ],
                 ),
               ),
-              const Icon(Icons.bookmark_border, color: Colors.black54, size: 20),
             ],
           ),
           const SizedBox(height: 16),
@@ -238,32 +294,33 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
             runSpacing: 8,
             children: tags.map((tag) => _buildTag(tag)).toList(),
           ),
-          const SizedBox(height: 16),
-          Text(
-            bio,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colors.black54,
-              height: 1.5,
+          if (mentor.bio != null && mentor.bio!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text(
+              mentor.bio!,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Colors.black54,
+                height: 1.5,
+              ),
             ),
-          ),
+          ],
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () {},
-              icon: isPending 
-                ? const SizedBox.shrink() 
-                : const Icon(Icons.handshake_outlined, color: Colors.white, size: 18),
-              label: Text(
-                isPending ? 'Pending Request...' : 'Request Mentorship',
+              onPressed: onRequest,
+              icon: const Icon(Icons.handshake_outlined,
+                  color: Colors.white, size: 18),
+              label: const Text(
+                'Request Mentorship',
                 style: TextStyle(
-                  color: isPending ? const Color(0xFF700000) : Colors.white,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isPending ? const Color(0xFFFDEAEA) : const Color(0xFF700000),
+                backgroundColor: AppColors.mulledWine,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -281,7 +338,7 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFFDEAEA), // Light red/pink bg
+        color: const Color(0xFFFDEAEA),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
@@ -289,9 +346,53 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
         style: const TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
-          color: Color(0xFF700000),
+          color: AppColors.mulledWine,
         ),
       ),
     );
+  }
+
+  List<AlumniDirectoryModel> _mockFallbackMentors() {
+    return [
+      AlumniDirectoryModel(
+        uid: 'saima_rahman',
+        fullName: 'Saima Rahman',
+        department: 'CSE',
+        batchYear: 2014,
+        currentCompany: 'TechFlow',
+        jobTitle: 'Product Director',
+        skills: ['Technology', 'Product Mgmt'],
+        photoUrl: 'https://i.pravatar.cc/150?img=5',
+        bio:
+            'Passionate about building scalable B2B SaaS products. Happy to review resumes, prep for interviews.',
+        openToMentorship: true,
+      ),
+      AlumniDirectoryModel(
+        uid: 'mahir_chowdhury',
+        fullName: 'Mahir Chowdhury',
+        department: 'BBA',
+        batchYear: 2008,
+        currentCompany: 'Apex Cap',
+        jobTitle: 'VP Finance',
+        skills: ['Finance', 'Inv. Banking'],
+        photoUrl: 'https://i.pravatar.cc/150?img=11',
+        bio:
+            'Over 15 years in M&A and corporate finance. Looking to mentor driven recent grads.',
+        openToMentorship: true,
+      ),
+      AlumniDirectoryModel(
+        uid: 'ananya_chowdhury',
+        fullName: 'Dr. Ananya Chowdhury',
+        department: 'CSE',
+        batchYear: 2018,
+        currentCompany: 'AI Dynamics',
+        jobTitle: 'Senior Data Scientist',
+        skills: ['Data Science', 'Machine Learning'],
+        photoUrl: 'https://i.pravatar.cc/150?img=9',
+        bio:
+            'Specializing in NLP and predictive modeling. Can help with portfolio reviews.',
+        openToMentorship: true,
+      ),
+    ];
   }
 }

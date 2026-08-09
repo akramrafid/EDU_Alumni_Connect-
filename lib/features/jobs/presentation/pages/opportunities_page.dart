@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../data/models/job_model.dart';
+import '../providers/jobs_provider.dart';
 
 class OpportunitiesPage extends ConsumerStatefulWidget {
   const OpportunitiesPage({super.key});
@@ -12,62 +16,175 @@ class OpportunitiesPage extends ConsumerStatefulWidget {
 }
 
 class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _showPostJobDialog() {
+    final titleController = TextEditingController();
+    final companyController = TextEditingController();
+    final locationController = TextEditingController();
+    final descController = TextEditingController();
+    final linkController = TextEditingController();
+    String selectedType = 'full-time';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Post an Opportunity'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(labelText: 'Job Title'),
+              ),
+              TextField(
+                controller: companyController,
+                decoration: const InputDecoration(labelText: 'Company'),
+              ),
+              TextField(
+                controller: locationController,
+                decoration:
+                    const InputDecoration(labelText: 'Location (e.g. Remote)'),
+              ),
+              DropdownButtonFormField<String>(
+                value: selectedType,
+                items: const [
+                  DropdownMenuItem(
+                      value: 'full-time', child: Text('Full-time')),
+                  DropdownMenuItem(
+                      value: 'part-time', child: Text('Part-time')),
+                  DropdownMenuItem(
+                      value: 'internship', child: Text('Internship')),
+                  DropdownMenuItem(
+                      value: 'contract', child: Text('Contract')),
+                ],
+                onChanged: (val) {
+                  if (val != null) selectedType = val;
+                },
+                decoration: const InputDecoration(labelText: 'Job Type'),
+              ),
+              TextField(
+                controller: descController,
+                maxLines: 3,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+              TextField(
+                controller: linkController,
+                decoration:
+                    const InputDecoration(labelText: 'Apply Link (URL)'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (titleController.text.isEmpty ||
+                  companyController.text.isEmpty ||
+                  linkController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please fill all required fields.')),
+                );
+                return;
+              }
+              Navigator.pop(context);
+              final success = await ref
+                  .read(postJobNotifierProvider.notifier)
+                  .post(
+                    title: titleController.text.trim(),
+                    company: companyController.text.trim(),
+                    location: locationController.text.trim(),
+                    jobType: selectedType,
+                    description: descController.text.trim(),
+                    applyLink: linkController.text.trim(),
+                  );
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Job posted successfully!'
+                          : 'Failed to post job.',
+                    ),
+                    backgroundColor:
+                        success ? Colors.green : AppColors.error,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.mulledWine,
+            ),
+            child: const Text('Post Job'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(currentUserProvider).value;
+    final isAlumniOrAdmin =
+        user?.role.name == 'alumni' || user?.role.name == 'admin';
+    final jobsAsync = ref.watch(activeJobsProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
+      floatingActionButton: isAlumniOrAdmin
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 24.0),
+              child: FloatingActionButton.extended(
+                onPressed: _showPostJobDialog,
+                backgroundColor: AppColors.mulledWine,
+                icon: const Icon(Icons.add, color: Colors.white),
+                label: const Text('Post Job',
+                    style: TextStyle(color: Colors.white)),
+              ),
+            )
+          : null,
       body: Column(
         children: [
-          _buildHeader(),
+          _buildHeader(user?.role.name),
           _buildSearchAndTitle(),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
-              itemCount: 4,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return _buildJobCard(
-                    title: 'Senior Product Designer',
-                    company: 'TechFlow Innovations',
-                    location: 'San Francisco, CA (Hybrid)',
-                    type: 'Full-time',
-                    isPostedByAlumni: true,
-                    isApply: true,
-                    logoIcon: Icons.water_drop,
-                  );
-                } else if (index == 1) {
-                  return _buildJobCard(
-                    title: 'Financial Analyst Internship',
-                    company: 'Apex Capital Partners',
-                    location: 'New York, NY',
-                    type: 'Summer 2024',
-                    isPostedByAlumni: false,
-                    isApply: false,
-                    logoIcon: Icons.public,
-                  );
-                } else if (index == 2) {
-                  return _buildJobCard(
-                    title: 'Data Engineering Lead',
-                    company: 'Nexus Health Tech',
-                    location: 'Remote',
-                    type: 'Full-time',
-                    isPostedByAlumni: true,
-                    isApply: true,
-                    logoIcon: Icons.analytics,
-                    logoColor: Colors.black87,
-                  );
-                } else {
-                  return _buildJobCard(
-                    title: 'Marketing Associate',
-                    company: 'Global Reach Media',
-                    location: 'Chicago, IL',
-                    type: 'Contract',
-                    isPostedByAlumni: false,
-                    isApply: false,
-                    logoIcon: Icons.campaign,
-                    logoColor: Colors.teal,
-                  );
-                }
+            child: jobsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+              data: (jobs) {
+                final displayJobs =
+                    jobs.isNotEmpty ? jobs : _mockFallbackJobs();
+
+                final filtered = _searchController.text.trim().isEmpty
+                    ? displayJobs
+                    : displayJobs
+                        .where((j) =>
+                            j.title.toLowerCase().contains(
+                                _searchController.text.trim().toLowerCase()) ||
+                            j.company.toLowerCase().contains(
+                                _searchController.text.trim().toLowerCase()))
+                        .toList();
+
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final job = filtered[index];
+                    return _buildJobCard(job);
+                  },
+                );
               },
             ),
           ),
@@ -76,15 +193,13 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
     );
   }
 
-  Widget _buildHeader() {
-    final userAsync = ref.watch(currentUserProvider);
-    final user = userAsync.value;
-    final String welcomeRole = user?.role.name == 'alumni' ? 'Alumni' : 'Student';
+  Widget _buildHeader(String? roleName) {
+    final welcomeRole = roleName == 'alumni' ? 'Alumni' : 'Student';
 
     return Container(
       height: 120,
       decoration: const BoxDecoration(
-        color: Color(0xFF700000),
+        color: AppColors.mulledWine,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
       ),
       padding: const EdgeInsets.fromLTRB(24, 50, 24, 0),
@@ -94,10 +209,11 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
           Row(
             children: [
               GestureDetector(
-                onTap: () => context.push('${AppRoutes.directory}/akram_rafid'),
+                onTap: () => context.push(AppRoutes.profile),
                 child: const CircleAvatar(
                   radius: 18,
-                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                  backgroundImage:
+                      NetworkImage('https://i.pravatar.cc/150?img=11'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -113,7 +229,7 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
           ),
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.white),
-            onPressed: () {},
+            onPressed: () => context.push(AppRoutes.notifications),
           ),
         ],
       ),
@@ -132,42 +248,26 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 5)),
+                BoxShadow(
+                    color: Colors.black.withOpacity(0.02),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5)),
               ],
             ),
             child: Row(
               children: [
                 const Icon(Icons.search, color: Colors.black54),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: TextField(
-                    decoration: InputDecoration(
+                    controller: _searchController,
+                    onChanged: (_) => setState(() {}),
+                    decoration: const InputDecoration(
                       hintText: 'Search jobs, internships, co...',
                       hintStyle: TextStyle(color: Colors.black38, fontSize: 14),
                       border: InputBorder.none,
                       isDense: true,
                     ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFDEAEA),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: const [
-                      Icon(Icons.tune, size: 14, color: Color(0xFF700000)),
-                      SizedBox(width: 4),
-                      Text(
-                        'Filter',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF700000),
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ],
@@ -195,16 +295,7 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
     );
   }
 
-  Widget _buildJobCard({
-    required String title,
-    required String company,
-    required String location,
-    required String type,
-    required bool isPostedByAlumni,
-    required bool isApply,
-    required IconData logoIcon,
-    Color logoColor = Colors.blue,
-  }) {
+  Widget _buildJobCard(JobModel job) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -232,25 +323,26 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
                   color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(logoIcon, color: logoColor),
+                child: const Icon(Icons.work, color: AppColors.mulledWine),
               ),
-              if (isPostedByAlumni)
+              if (job.isPostedByAlumni)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFDEAEA),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Row(
-                    children: const [
-                      Icon(Icons.school, size: 12, color: Color(0xFF700000)),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.school, size: 12, color: AppColors.mulledWine),
                       SizedBox(width: 4),
                       Text(
                         'Posted by Alumni',
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF700000),
+                          color: AppColors.mulledWine,
                         ),
                       ),
                     ],
@@ -260,7 +352,7 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            title,
+            job.title,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -269,7 +361,7 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            company,
+            job.company,
             style: const TextStyle(
               fontSize: 13,
               color: Colors.black54,
@@ -278,28 +370,32 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildLocationTag(Icons.location_on_outlined, location),
+              _buildLocationTag(Icons.location_on_outlined, job.location),
               const SizedBox(width: 8),
-              _buildLocationTag(Icons.work_outline, type),
+              _buildLocationTag(Icons.work_outline, job.jobType),
             ],
           ),
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Opening: ${job.applyLink}')),
+                );
+              },
               style: ElevatedButton.styleFrom(
-                backgroundColor: isApply ? const Color(0xFF700000) : const Color(0xFFFDEAEA),
+                backgroundColor: AppColors.mulledWine,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 elevation: 0,
               ),
-              child: Text(
-                isApply ? 'Apply Now' : 'View Details',
+              child: const Text(
+                'Apply Now',
                 style: TextStyle(
-                  color: isApply ? Colors.white : const Color(0xFF700000),
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -331,5 +427,34 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
         ],
       ),
     );
+  }
+
+  List<JobModel> _mockFallbackJobs() {
+    return [
+      JobModel(
+        jobId: 'job_1',
+        postedByAlumniId: 'alumni_1',
+        posterName: 'Saima Rahman',
+        title: 'Senior Product Designer',
+        company: 'TechFlow Innovations',
+        location: 'San Francisco, CA (Hybrid)',
+        jobType: 'Full-time',
+        description: 'Lead design team for next-gen B2B products.',
+        applyLink: 'https://careers.google.com',
+        postedAt: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+      JobModel(
+        jobId: 'job_2',
+        postedByAlumniId: 'alumni_2',
+        posterName: 'Tousif Ahmed',
+        title: 'Financial Analyst Internship',
+        company: 'Apex Capital Partners',
+        location: 'New York, NY',
+        jobType: 'Summer 2024',
+        description: 'Summer internship for finance and economics students.',
+        applyLink: 'https://apexcapital.com',
+        postedAt: DateTime.now().subtract(const Duration(days: 3)),
+      ),
+    ];
   }
 }

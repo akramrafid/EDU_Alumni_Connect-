@@ -1,17 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/app_routes.dart';
 
-class DirectoryPage extends StatefulWidget {
+import '../../../../core/constants/app_routes.dart';
+import '../../../../core/di/providers.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../data/models/alumni_directory_model.dart';
+import '../providers/directory_provider.dart';
+
+class DirectoryPage extends ConsumerStatefulWidget {
   const DirectoryPage({super.key});
 
   @override
-  State<DirectoryPage> createState() => _DirectoryPageState();
+  ConsumerState<DirectoryPage> createState() => _DirectoryPageState();
 }
 
-class _DirectoryPageState extends State<DirectoryPage> {
+class _DirectoryPageState extends ConsumerState<DirectoryPage> {
+  final _searchController = TextEditingController();
+  String _selectedDept = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final directoryAsync = ref.watch(
+      alumniDirectoryProvider(
+        department: _selectedDept.isNotEmpty ? _selectedDept : null,
+      ),
+    );
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
@@ -20,40 +41,55 @@ class _DirectoryPageState extends State<DirectoryPage> {
           children: [
             _buildHeader(),
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 120),
-                itemCount: 3, // Mock data
-                itemBuilder: (context, index) {
-                  final mockData = [
-                    {
-                      'name': 'Saima Rahman',
-                      'role': 'Senior Software Engineer at Google',
-                      'image': 'https://i.pravatar.cc/150?img=5',
-                      'tags': ['Class of \'18', 'San Francisco']
+              child: directoryAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Center(child: Text('Error: $err')),
+                data: (alumniList) {
+                  // Fallback to mock data if empty (e.g. dev mode without seeded Firestore data)
+                  final displayList = alumniList.isNotEmpty
+                      ? alumniList
+                      : _mockFallbackAlumni();
+
+                  final filteredList = _searchController.text.trim().isEmpty
+                      ? displayList
+                      : displayList
+                          .where((a) => a.fullName
+                              .toLowerCase()
+                              .contains(_searchController.text.trim().toLowerCase()))
+                          .toList();
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 120),
+                    itemCount: filteredList.length,
+                    itemBuilder: (context, index) {
+                      final person = filteredList[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: _AlumniCard(
+                          alumni: person,
+                          onTap: () => context
+                              .push('${AppRoutes.directory}/${person.uid}'),
+                          onConnect: () async {
+                            final chatRepo = ref.read(chatRepositoryProvider);
+                            final result = await chatRepo
+                                .getOrCreateConversation(person.uid);
+                            result.fold(
+                              (failure) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(failure.message),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              },
+                              (convId) {
+                                context.push('${AppRoutes.chat}/$convId');
+                              },
+                            );
+                          },
+                        ),
+                      );
                     },
-                    {
-                      'name': 'Tousif Ahmed',
-                      'role': 'Director of Product at FinTech Solutions',
-                      'image': 'https://i.pravatar.cc/150?img=11',
-                      'tags': ['Class of \'05', 'New York']
-                    },
-                    {
-                      'name': 'Ananya Chowdhury',
-                      'role': 'UX Researcher at DesignCo',
-                      'image': 'https://i.pravatar.cc/150?img=9',
-                      'tags': ['Class of \'21', 'Austin']
-                    },
-                  ];
-                  final person = mockData[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: _AlumniCard(
-                      name: person['name'] as String,
-                      role: person['role'] as String,
-                      imageUrl: person['image'] as String,
-                      tags: person['tags'] as List<String>,
-                      onTap: () => context.push('${AppRoutes.directory}/akram_rafid'),
-                    ),
                   );
                 },
               ),
@@ -83,13 +119,16 @@ class _DirectoryPageState extends State<DirectoryPage> {
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200, 
+                    color: Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const TextField(
-                    decoration: InputDecoration(
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (val) => setState(() {}),
+                    decoration: const InputDecoration(
                       icon: Icon(Icons.search, color: Colors.black54),
                       hintText: 'Search alumni, companies...',
                       hintStyle: TextStyle(color: Colors.black38),
@@ -99,13 +138,32 @@ class _DirectoryPageState extends State<DirectoryPage> {
                 ),
               ),
               const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(16),
+              PopupMenuButton<String>(
+                onSelected: (dept) => setState(() => _selectedDept = dept),
+                itemBuilder: (context) => [
+                  const PopupMenuItem(value: '', child: Text('All Departments')),
+                  const PopupMenuItem(value: 'CSE', child: Text('CSE')),
+                  const PopupMenuItem(value: 'EEE', child: Text('EEE')),
+                  const PopupMenuItem(value: 'BBA', child: Text('BBA')),
+                  const PopupMenuItem(value: 'English', child: Text('English')),
+                  const PopupMenuItem(
+                      value: 'Economics', child: Text('Economics')),
+                ],
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: _selectedDept.isNotEmpty
+                        ? AppColors.mulledWine
+                        : Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    Icons.tune,
+                    color: _selectedDept.isNotEmpty
+                        ? Colors.white
+                        : Colors.black87,
+                  ),
                 ),
-                child: const Icon(Icons.tune, color: Colors.black87), // Filter icon
               ),
             ],
           ),
@@ -113,25 +171,70 @@ class _DirectoryPageState extends State<DirectoryPage> {
       ),
     );
   }
+
+  List<AlumniDirectoryModel> _mockFallbackAlumni() {
+    return [
+      AlumniDirectoryModel(
+        uid: 'saima_rahman',
+        fullName: 'Saima Rahman',
+        department: 'CSE',
+        batchYear: 2018,
+        currentCompany: 'Google',
+        jobTitle: 'Senior Software Engineer',
+        skills: ['Flutter', 'System Architecture', 'GCP'],
+        location: 'San Francisco, CA',
+        photoUrl: 'https://i.pravatar.cc/150?img=5',
+        bio: 'Building next-gen Android and cross-platform mobile apps.',
+        openToMentorship: true,
+      ),
+      AlumniDirectoryModel(
+        uid: 'tousif_ahmed',
+        fullName: 'Tousif Ahmed',
+        department: 'BBA',
+        batchYear: 2005,
+        currentCompany: 'FinTech Solutions',
+        jobTitle: 'Director of Product',
+        skills: ['Product Strategy', 'FinTech', 'Leadership'],
+        location: 'New York, NY',
+        photoUrl: 'https://i.pravatar.cc/150?img=11',
+        bio: 'Passionate about mobile banking and scaling digital products.',
+        openToMentorship: true,
+      ),
+      AlumniDirectoryModel(
+        uid: 'ananya_chowdhury',
+        fullName: 'Dr. Ananya Chowdhury',
+        department: 'CSE',
+        batchYear: 2021,
+        currentCompany: 'DesignCo',
+        jobTitle: 'UX Researcher',
+        skills: ['User Research', 'Design Systems', 'HCI'],
+        location: 'Austin, TX',
+        photoUrl: 'https://i.pravatar.cc/150?img=9',
+        bio: 'Exploring human-centered design for social impact.',
+        openToMentorship: true,
+      ),
+    ];
+  }
 }
 
 class _AlumniCard extends StatelessWidget {
-  final String name;
-  final String role;
-  final String imageUrl;
-  final List<String> tags;
+  final AlumniDirectoryModel alumni;
   final VoidCallback onTap;
+  final VoidCallback onConnect;
 
   const _AlumniCard({
-    required this.name,
-    required this.role,
-    required this.imageUrl,
-    required this.tags,
+    required this.alumni,
     required this.onTap,
+    required this.onConnect,
   });
 
   @override
   Widget build(BuildContext context) {
+    final List<String> tags = [
+      alumni.classYear,
+      if (alumni.location != null) alumni.location!,
+    ];
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -156,7 +259,9 @@ class _AlumniCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundImage: NetworkImage(imageUrl),
+                  backgroundImage: NetworkImage(
+                    alumni.photoUrl ?? 'https://i.pravatar.cc/150?img=11',
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -164,7 +269,7 @@ class _AlumniCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        name,
+                        alumni.fullName,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -173,7 +278,7 @@ class _AlumniCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        role,
+                        alumni.displayRole,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.black54,
@@ -184,7 +289,8 @@ class _AlumniCard extends StatelessWidget {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: tags.map((tag) => _TagChip(label: tag)).toList(),
+                        children:
+                            tags.map((tag) => _TagChip(label: tag)).toList(),
                       ),
                     ],
                   ),
@@ -194,10 +300,9 @@ class _AlumniCard extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           ElevatedButton.icon(
-            onPressed: () {
-              // TODO: wire to connect action
-            },
-            icon: const Icon(Icons.person_add_alt_1, color: Colors.white, size: 18),
+            onPressed: onConnect,
+            icon: const Icon(Icons.person_add_alt_1,
+                color: Colors.white, size: 18),
             label: const Text(
               'Connect',
               style: TextStyle(
@@ -206,7 +311,7 @@ class _AlumniCard extends StatelessWidget {
               ),
             ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF700000), // Brand dark red
+              backgroundColor: AppColors.mulledWine,
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

@@ -25,7 +25,7 @@ import '../../features/events/presentation/pages/events_page.dart';
 import '../../features/events/presentation/pages/event_details_page.dart';
 import '../../features/jobs/presentation/pages/opportunities_page.dart';
 import '../../features/jobs/presentation/pages/job_detail_screen.dart';
-import '../../features/mentorship/presentation/pages/mentors_page.dart';
+import '../../features/profile/presentation/pages/profile_screen.dart';
 import '../../features/profile/presentation/pages/edit_profile_screen.dart';
 import '../../features/notifications/presentation/pages/notifications_screen.dart';
 import '../../features/admin/presentation/pages/admin_dashboard_screen.dart';
@@ -153,13 +153,15 @@ GoRouter router(RouterRef ref) {
               GoRoute(
                 path: ':conversationId',
                 parentNavigatorKey: _rootNavigatorKey,
-                builder: (context, state) => const ChatDetailPage(),
+                builder: (context, state) => ChatDetailPage(
+                      conversationId: state.pathParameters['conversationId'],
+                    ),
               ),
             ],
           ),
           GoRoute(
             path: AppRoutes.profile,
-            builder: (context, state) => const MentorsPage(),
+            builder: (context, state) => const ProfileScreen(),
             routes: [
               GoRoute(
                 path: 'edit',

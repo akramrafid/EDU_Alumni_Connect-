@@ -51,7 +51,23 @@ final firebaseStorageProvider = AutoDisposeProvider<FirebaseStorage>.internal(
 );
 
 typedef FirebaseStorageRef = AutoDisposeProviderRef<FirebaseStorage>;
-String _$authRemoteSourceHash() => r'b55e6e8b91c71706aeb089fce181f79ea322baed';
+String _$firebaseFunctionsHash() => r'e21c5ecfeb92417e8eafebe223fbeb8d47011677';
+
+/// See also [firebaseFunctions].
+@ProviderFor(firebaseFunctions)
+final firebaseFunctionsProvider =
+    AutoDisposeProvider<FirebaseFunctions>.internal(
+  firebaseFunctions,
+  name: r'firebaseFunctionsProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$firebaseFunctionsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef FirebaseFunctionsRef = AutoDisposeProviderRef<FirebaseFunctions>;
+String _$authRemoteSourceHash() => r'85587e24d4290c786578bbe7814d457227b0ca2e';
 
 /// See also [authRemoteSource].
 @ProviderFor(authRemoteSource)
@@ -67,7 +83,7 @@ final authRemoteSourceProvider =
 );
 
 typedef AuthRemoteSourceRef = AutoDisposeProviderRef<IAuthRemoteSource>;
-String _$userRemoteSourceHash() => r'b2e956902fdf800a72a9caa842d89da21574c08c';
+String _$userRemoteSourceHash() => r'3121316308190db5c2bdb33a94facc88d3fc62a0';
 
 /// See also [userRemoteSource].
 @ProviderFor(userRemoteSource)
@@ -83,7 +99,7 @@ final userRemoteSourceProvider =
 );
 
 typedef UserRemoteSourceRef = AutoDisposeProviderRef<IUserRemoteSource>;
-String _$authRepositoryHash() => r'f2cb8eae8a672bfa89a49525747c731bf4840c78';
+String _$authRepositoryHash() => r'c10d8e581ea5683c77068d75fe8d62c749ec2927';
 
 /// See also [authRepository].
 @ProviderFor(authRepository)
@@ -182,5 +198,102 @@ final watchAuthStateUseCaseProvider =
 
 typedef WatchAuthStateUseCaseRef
     = AutoDisposeProviderRef<WatchAuthStateUseCase>;
+String _$eventRepositoryHash() => r'77f5ebe821ebefd2cb949d80454296f707362f49';
+
+/// See also [eventRepository].
+@ProviderFor(eventRepository)
+final eventRepositoryProvider = AutoDisposeProvider<IEventRepository>.internal(
+  eventRepository,
+  name: r'eventRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$eventRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef EventRepositoryRef = AutoDisposeProviderRef<IEventRepository>;
+String _$directoryRepositoryHash() =>
+    r'5fdb15452f2bf38bcfbf1410fd74796aadccf3d5';
+
+/// See also [directoryRepository].
+@ProviderFor(directoryRepository)
+final directoryRepositoryProvider =
+    AutoDisposeProvider<IDirectoryRepository>.internal(
+  directoryRepository,
+  name: r'directoryRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$directoryRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef DirectoryRepositoryRef = AutoDisposeProviderRef<IDirectoryRepository>;
+String _$chatRepositoryHash() => r'5a18ce0ebb8b85614f4e1843c789c7a7ffc4c9cb';
+
+/// See also [chatRepository].
+@ProviderFor(chatRepository)
+final chatRepositoryProvider = AutoDisposeProvider<IChatRepository>.internal(
+  chatRepository,
+  name: r'chatRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$chatRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef ChatRepositoryRef = AutoDisposeProviderRef<IChatRepository>;
+String _$mentorshipRepositoryHash() =>
+    r'2f639bce70d240c690e0063dbe38e487bdbcc922';
+
+/// See also [mentorshipRepository].
+@ProviderFor(mentorshipRepository)
+final mentorshipRepositoryProvider =
+    AutoDisposeProvider<IMentorshipRepository>.internal(
+  mentorshipRepository,
+  name: r'mentorshipRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$mentorshipRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef MentorshipRepositoryRef = AutoDisposeProviderRef<IMentorshipRepository>;
+String _$jobRepositoryHash() => r'3ae6f36c115ab65525fd5224da0d0fd7e40dc319';
+
+/// See also [jobRepository].
+@ProviderFor(jobRepository)
+final jobRepositoryProvider = AutoDisposeProvider<IJobRepository>.internal(
+  jobRepository,
+  name: r'jobRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$jobRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef JobRepositoryRef = AutoDisposeProviderRef<IJobRepository>;
+String _$notificationRepositoryHash() =>
+    r'e5b34b5ab9f69d88cfbe8922fd3041694e3ca312';
+
+/// See also [notificationRepository].
+@ProviderFor(notificationRepository)
+final notificationRepositoryProvider =
+    AutoDisposeProvider<INotificationRepository>.internal(
+  notificationRepository,
+  name: r'notificationRepositoryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$notificationRepositoryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef NotificationRepositoryRef
+    = AutoDisposeProviderRef<INotificationRepository>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

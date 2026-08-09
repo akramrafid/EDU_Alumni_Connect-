@@ -109,7 +109,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
                 child: IconButton(
                   icon: const Icon(Icons.notifications_none, color: Colors.white),
-                  onPressed: () {},
+                  onPressed: () => context.push(AppRoutes.notifications),
                 ),
               ),
             ],

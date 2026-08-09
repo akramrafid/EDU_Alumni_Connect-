@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "edu-alumni-connect",
+    "staging": "edu-alumni-staging",
+    "production": "edu-alumni-prod"
+  }
+}

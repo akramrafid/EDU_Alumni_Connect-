@@ -35,7 +35,7 @@ final currentUserProvider =
 );
 
 typedef _$CurrentUser = AutoDisposeNotifier<AsyncValue<AuthUser?>>;
-String _$signInNotifierHash() => r'c11346ec7017f4e7e676e3b8fe19ed4100a240c4';
+String _$signInNotifierHash() => r'dc4536336b679f6d0c26f8430a5f20a21404fc3d';
 
 /// See also [SignInNotifier].
 @ProviderFor(SignInNotifier)
@@ -51,7 +51,7 @@ final signInNotifierProvider =
 );
 
 typedef _$SignInNotifier = AutoDisposeAsyncNotifier<void>;
-String _$registerNotifierHash() => r'e45e64109bff0a0d992e0311c45b71767c8d7697';
+String _$registerNotifierHash() => r'59b3a1ea5e614fa2fefc6270a8983cac8fb791e9';
 
 /// See also [RegisterNotifier].
 @ProviderFor(RegisterNotifier)

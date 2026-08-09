@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class _Message {
@@ -26,14 +27,15 @@ class _Message {
   }) : reactions = reactions ?? [];
 }
 
-class ChatDetailPage extends StatefulWidget {
-  const ChatDetailPage({super.key});
+class ChatDetailPage extends ConsumerStatefulWidget {
+  final String? conversationId;
+  const ChatDetailPage({super.key, this.conversationId});
 
   @override
-  State<ChatDetailPage> createState() => _ChatDetailPageState();
+  ConsumerState<ChatDetailPage> createState() => _ChatDetailPageState();
 }
 
-class _ChatDetailPageState extends State<ChatDetailPage> {
+class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
   final List<_Message> _messages = [
     _Message(
       text: 'Hello! I saw your recent post about the upcoming FinTech summit. Are you planning to attend the keynote panel?',

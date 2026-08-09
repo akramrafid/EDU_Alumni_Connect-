@@ -1,18 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/app_routes.dart';
-import '../../data/models/mock_event.dart';
 
-class EventsPage extends StatefulWidget {
+import '../../../../core/constants/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../data/models/event_model.dart';
+import '../../data/models/mock_event.dart';
+import '../providers/events_provider.dart';
+
+class EventsPage extends ConsumerStatefulWidget {
   const EventsPage({super.key});
 
   @override
-  State<EventsPage> createState() => _EventsPageState();
+  ConsumerState<EventsPage> createState() => _EventsPageState();
 }
 
-class _EventsPageState extends State<EventsPage> {
+class _EventsPageState extends ConsumerState<EventsPage> {
+  String _selectedTag = 'All';
+
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(currentUserProvider).value;
+    final currentUid = user?.uid ?? '';
+    final eventsAsync = ref.watch(upcomingEventsProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: Column(
@@ -20,12 +32,30 @@ class _EventsPageState extends State<EventsPage> {
           _buildHeader(),
           _buildFilterChips(),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 120),
-              itemCount: mockEvents.length,
-              itemBuilder: (context, index) {
-                final event = mockEvents[index];
-                return _buildEventCard(event);
+            child: eventsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+              data: (events) {
+                final displayList = events.isNotEmpty
+                    ? events
+                    : _mockFallbackEvents();
+
+                final filtered = _selectedTag == 'All'
+                    ? displayList
+                    : displayList
+                        .where((e) =>
+                            e.tag.toLowerCase() ==
+                            _selectedTag.toLowerCase())
+                        .toList();
+
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 120),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final event = filtered[index];
+                    return _buildEventCard(event, currentUid);
+                  },
+                );
               },
             ),
           ),
@@ -38,7 +68,7 @@ class _EventsPageState extends State<EventsPage> {
     return Container(
       height: 120,
       decoration: const BoxDecoration(
-        color: Color(0xFF700000),
+        color: AppColors.mulledWine,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
       ),
       padding: const EdgeInsets.fromLTRB(24, 50, 24, 0),
@@ -48,10 +78,11 @@ class _EventsPageState extends State<EventsPage> {
           Row(
             children: [
               GestureDetector(
-                onTap: () => context.push('${AppRoutes.directory}/akram_rafid'),
+                onTap: () => context.push(AppRoutes.profile),
                 child: const CircleAvatar(
                   radius: 18,
-                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                  backgroundImage:
+                      NetworkImage('https://i.pravatar.cc/150?img=11'),
                 ),
               ),
               const SizedBox(width: 12),
@@ -67,7 +98,7 @@ class _EventsPageState extends State<EventsPage> {
           ),
           IconButton(
             icon: const Icon(Icons.notifications_none, color: Colors.white),
-            onPressed: () {},
+            onPressed: () => context.push(AppRoutes.notifications),
           ),
         ],
       ),
@@ -80,44 +111,50 @@ class _EventsPageState extends State<EventsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Row(
         children: [
-          _buildChip('All', isSelected: true),
+          _buildChip('All'),
           const SizedBox(width: 8),
-          _buildChip('This Week', isSelected: false),
+          _buildChip('COMPUTER CLUB'),
           const SizedBox(width: 8),
-          _buildChip('My Club', isSelected: false),
+          _buildChip('NETWORKING'),
           const SizedBox(width: 8),
-          _buildChip('Webinars', isSelected: false),
+          _buildChip('WEBINAR'),
         ],
       ),
     );
   }
 
-  Widget _buildChip(String label, {required bool isSelected}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF700000) : const Color(0xFFFDEAEA),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : const Color(0xFF700000),
-          fontWeight: FontWeight.bold,
-          fontSize: 13,
+  Widget _buildChip(String label) {
+    final isSelected = _selectedTag == label;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedTag = label),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.mulledWine : const Color(0xFFFDEAEA),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.mulledWine,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildEventCard(MockEvent event) {
-    double progress = event.attendees / event.maxAttendees;
-    bool isFull = event.attendees >= event.maxAttendees;
-    bool isAlmostFull = !isFull && (event.maxAttendees - event.attendees <= 15);
-    bool isWaitlist = isFull;
+  Widget _buildEventCard(EventModel event, String currentUid) {
+    final progress = event.maxAttendees > 0
+        ? event.rsvpCount / event.maxAttendees
+        : 0.0;
+    final isFull = event.isFull;
+    final isAlmostFull = event.isAlmostFull;
+    final isRsvped = event.isUserRsvped(currentUid);
 
     return GestureDetector(
-      onTap: () => context.push('${AppRoutes.events}/${event.id}'),
+      onTap: () => context.push('${AppRoutes.events}/${event.eventId}'),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),
@@ -141,22 +178,27 @@ class _EventsPageState extends State<EventsPage> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.calendar_today, size: 14, color: isFull ? Colors.grey : const Color(0xFF700000)),
+                    Icon(Icons.calendar_today,
+                        size: 14,
+                        color: isFull ? Colors.grey : AppColors.mulledWine),
                     const SizedBox(width: 4),
                     Text(
                       '${event.date} • ${event.time}',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: isFull ? Colors.grey : const Color(0xFF700000),
+                        color: isFull ? Colors.grey : AppColors.mulledWine,
                       ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isFull ? Colors.grey.shade200 : const Color(0xFFFDEAEA),
+                    color: isFull
+                        ? Colors.grey.shade200
+                        : const Color(0xFFFDEAEA),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -164,7 +206,7 @@ class _EventsPageState extends State<EventsPage> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: isFull ? Colors.grey : const Color(0xFF700000),
+                      color: isFull ? Colors.grey : AppColors.mulledWine,
                     ),
                   ),
                 ),
@@ -183,7 +225,8 @@ class _EventsPageState extends State<EventsPage> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.location_on_outlined, size: 16, color: isFull ? Colors.grey : Colors.black54),
+                Icon(Icons.location_on_outlined,
+                    size: 16, color: isFull ? Colors.grey : Colors.black54),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
@@ -211,76 +254,88 @@ class _EventsPageState extends State<EventsPage> {
                   ),
                 ),
                 Text(
-                  '${event.attendees} / ${event.maxAttendees}',
+                  '${event.rsvpCount} / ${event.maxAttendees}',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: isFull ? Colors.grey : (isAlmostFull ? Colors.red : const Color(0xFF700000)),
+                    color: isFull
+                        ? Colors.grey
+                        : (isAlmostFull ? Colors.red : AppColors.mulledWine),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             LinearProgressIndicator(
-              value: progress,
+              value: progress.clamp(0.0, 1.0),
               backgroundColor: Colors.grey.shade200,
               valueColor: AlwaysStoppedAnimation<Color>(
-                  isFull ? Colors.grey : (isAlmostFull ? Colors.red : const Color(0xFF700000))),
+                isFull
+                    ? Colors.grey
+                    : (isAlmostFull ? Colors.red : AppColors.mulledWine),
+              ),
               borderRadius: BorderRadius.circular(4),
               minHeight: 6,
             ),
-            if (isAlmostFull)
-              const Padding(
-                padding: EdgeInsets.only(top: 4.0),
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    'Almost Full',
-                    style: TextStyle(fontSize: 10, color: Colors.red),
-                  ),
-                ),
-              ),
             const SizedBox(height: 16),
             const Divider(height: 1),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
+                const Row(
                   children: [
-                    _buildAvatarOverlapped('https://i.pravatar.cc/150?img=1'),
-                    _buildAvatarOverlapped('https://i.pravatar.cc/150?img=2'),
-                    _buildAvatarOverlapped('https://i.pravatar.cc/150?img=3'),
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: Center(
-                        child: Text(
-                          isWaitlist ? '+498' : '+${event.maxAttendees - 3}',
-                          style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                    CircleAvatar(
+                      radius: 12,
+                      backgroundImage:
+                          NetworkImage('https://i.pravatar.cc/150?img=1'),
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      'Attending',
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
                     ),
                   ],
                 ),
                 ElevatedButton(
-                  onPressed: () => context.push('${AppRoutes.events}/${event.id}'),
+                  onPressed: () async {
+                    final success = await ref
+                        .read(rsvpNotifierProvider.notifier)
+                        .toggleRsvp(
+                          eventId: event.eventId,
+                          currentRsvpStatus: isRsvped,
+                        );
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            success
+                                ? (isRsvped ? 'RSVP Cancelled' : 'RSVP Successful!')
+                                : 'Failed to update RSVP',
+                          ),
+                          backgroundColor:
+                              success ? Colors.green : AppColors.error,
+                        ),
+                      );
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isWaitlist ? Colors.grey.shade200 : const Color(0xFF700000),
-                    foregroundColor: isWaitlist ? Colors.black54 : Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    backgroundColor: isRsvped
+                        ? Colors.green
+                        : (isFull
+                            ? Colors.grey.shade300
+                            : AppColors.mulledWine),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                     elevation: 0,
                   ),
                   child: Text(
-                    isWaitlist ? 'Waitlist' : 'RSVP',
+                    isRsvped ? 'Going ✓' : (isFull ? 'Waitlist' : 'RSVP'),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -292,19 +347,25 @@ class _EventsPageState extends State<EventsPage> {
     );
   }
 
-  Widget _buildAvatarOverlapped(String url) {
-    return Align(
-      widthFactor: 0.6,
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 2),
-        ),
-        child: CircleAvatar(
-          radius: 12,
-          backgroundImage: NetworkImage(url),
-        ),
-      ),
-    );
+  List<EventModel> _mockFallbackEvents() {
+    return mockEvents
+        .map(
+          (m) => EventModel(
+            eventId: m.id,
+            title: m.title,
+            description: m.description,
+            tag: m.tag,
+            dateTime: DateTime.now().add(const Duration(days: 3)),
+            date: m.date,
+            time: m.time,
+            location: m.location,
+            bannerUrl: m.image,
+            maxAttendees: m.maxAttendees,
+            rsvpCount: m.attendees,
+            postedByAdminId: 'admin_1',
+            createdAt: DateTime.now(),
+          ),
+        )
+        .toList();
   }
 }
