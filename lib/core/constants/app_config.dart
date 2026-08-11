@@ -1,7 +1,7 @@
 enum AppEnvironment { dev, staging, prod }
 
 class AppConfig {
-  static const bool useMock = true; // Mock mode ON until Firebase is fully configured
+  static const bool useMock = false; // Live Firebase active
 
   final AppEnvironment environment;
   final String firebaseProjectId;
@@ -21,14 +21,14 @@ class AppConfig {
       case 'prod':
         return const AppConfig(
           environment: AppEnvironment.prod,
-          firebaseProjectId: 'edu-alumni-connect', // Matches your new production project name
+          firebaseProjectId: 'edu-alumni-connect-a6511',
           algoliaAppId: 'PROD_ALGOLIA_APP_ID',
           algoliaSearchKey: 'PROD_ALGOLIA_SEARCH_KEY',
         );
       case 'staging':
         return const AppConfig(
           environment: AppEnvironment.staging,
-          firebaseProjectId: 'edu-alumni-connect',
+          firebaseProjectId: 'edu-alumni-connect-a6511',
           algoliaAppId: 'STAGING_ALGOLIA_APP_ID',
           algoliaSearchKey: 'STAGING_ALGOLIA_SEARCH_KEY',
         );
@@ -36,7 +36,7 @@ class AppConfig {
       default:
         return const AppConfig(
           environment: AppEnvironment.dev,
-          firebaseProjectId: 'edu-alumni-connect', // Matches your new dev project name
+          firebaseProjectId: 'edu-alumni-connect-a6511',
           algoliaAppId: 'DEV_ALGOLIA_APP_ID',
           algoliaSearchKey: 'DEV_ALGOLIA_SEARCH_KEY',
         );

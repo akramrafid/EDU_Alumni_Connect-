@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "298977404228",
-    "project_id": "edu-alumni-connect",
-    "storage_bucket": "edu-alumni-connect.firebasestorage.app"
+    "project_number": "1057155326864",
+    "project_id": "edu-alumni-connect-a6511",
+    "storage_bucket": "edu-alumni-connect-a6511.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:298977404228:android:d68a3b989f20b77c51a311",
+        "mobilesdk_app_id": "1:1057155326864:android:66a257e8ce0b8978840915",
         "android_client_info": {
           "package_name": "bd.edu.eastdelta.edu_alumni_connect"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAtra903UoyRzlnRC7iWQZNqjt5b3b3HVE"
+          "current_key": "AIzaSyDuWyj07mMGjRBlbk7f9_DGfgLAXfdq6CU"
         }
       ],
       "services": {
