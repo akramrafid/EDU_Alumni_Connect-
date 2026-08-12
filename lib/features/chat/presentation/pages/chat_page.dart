@@ -147,11 +147,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
       children: [
-        const SizedBox(height: 235),
+        const SizedBox(height: 250),
         
         // Brand Multi-Stop Gradient Top Header
         Container(
-          height: 190,
+          height: 255,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -166,7 +166,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               bottom: Radius.circular(32),
             ),
           ),
-          padding: const EdgeInsets.fromLTRB(24, 52, 24, 0),
+          padding: const EdgeInsets.fromLTRB(24, 50, 24, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -195,18 +195,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       ),
                     ],
                   ),
-                  GestureDetector(
-                    onTap: () => context.push(AppRoutes.profile),
-                    child: Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
-                      ),
-                      child: const CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
-                      ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                      onPressed: () => context.push(AppRoutes.notifications),
                     ),
                   ),
                 ],
@@ -217,7 +213,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
         // Metrics Deck Overlapping Header
         Positioned(
-          top: 125,
+          top: 120,
           left: 20,
           right: 20,
           child: Container(
@@ -445,7 +441,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -462,10 +457,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           controller: _searchController,
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
-            icon: const Icon(Icons.search, color: AppColors.mulledWine, size: 22),
+            prefixIcon: const Icon(Icons.search, color: AppColors.mulledWine, size: 22),
             hintText: 'Search chats, alumni, or messages...',
             hintStyle: const TextStyle(color: Colors.black38, fontSize: 14),
             border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.clear, size: 18, color: Colors.black45),

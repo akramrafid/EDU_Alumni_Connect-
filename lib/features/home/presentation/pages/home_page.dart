@@ -152,11 +152,11 @@ class _HomePageState extends ConsumerState<HomePage> {
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
       children: [
-        const SizedBox(height: 235),
+        const SizedBox(height: 250),
         
         // Premium Brand Gradient Top Header
         Container(
-          height: 190,
+          height: 255,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -171,7 +171,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               bottom: Radius.circular(32),
             ),
           ),
-          padding: const EdgeInsets.fromLTRB(24, 52, 24, 0),
+          padding: const EdgeInsets.fromLTRB(24, 50, 24, 0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -297,7 +297,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
         // Metrics Deck Overlapping Header
         Positioned(
-          top: 135,
+          top: 120,
           left: 20,
           right: 20,
           child: Container(
@@ -406,7 +406,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -422,10 +421,13 @@ class _HomePageState extends ConsumerState<HomePage> {
         child: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            icon: const Icon(Icons.search, color: AppColors.mulledWine, size: 22),
+            prefixIcon: const Icon(Icons.search, color: AppColors.mulledWine, size: 22),
             hintText: 'Search alumni, jobs, mentors, events...',
             hintStyle: const TextStyle(color: Colors.black38, fontSize: 14),
             border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
             suffixIcon: IconButton(
               icon: const Icon(Icons.tune, color: Colors.black45, size: 20),
               onPressed: () {
