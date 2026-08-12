@@ -39,7 +39,7 @@ class ProfileController extends _$ProfileController {
       final userRemote = ref.read(userRemoteSourceProvider);
       final firestore = ref.read(firebaseFirestoreProvider);
 
-      // Upload image to Storage (or fallback base64)
+      // Upload image to Storage (or fallback base64/path)
       final photoUrl = await userRemote.uploadProfileImage(user.uid, file);
 
       // Update Firestore user document
@@ -51,7 +51,7 @@ class ProfileController extends _$ProfileController {
       state = const AsyncData(null);
       return true;
     } catch (e, st) {
-      state = AsyncError(e, st);
+      state = AsyncValue.error(e, st);
       return false;
     }
   }
@@ -73,7 +73,7 @@ class ProfileController extends _$ProfileController {
       state = const AsyncData(null);
       return true;
     } catch (e, st) {
-      state = AsyncError(e, st);
+      state = AsyncValue.error(e, st);
       return false;
     }
   }
@@ -102,7 +102,7 @@ class ProfileController extends _$ProfileController {
       final userRemote = ref.read(userRemoteSourceProvider);
       final firestore = ref.read(firebaseFirestoreProvider);
 
-      // Upload cover image to Storage (or fallback base64)
+      // Upload cover image to Storage (or fallback base64/path)
       final coverPhotoUrl = await userRemote.uploadCoverImage(user.uid, file);
 
       // Update Firestore user document
@@ -114,7 +114,7 @@ class ProfileController extends _$ProfileController {
       state = const AsyncData(null);
       return true;
     } catch (e, st) {
-      state = AsyncError(e, st);
+      state = AsyncValue.error(e, st);
       return false;
     }
   }
@@ -136,7 +136,7 @@ class ProfileController extends _$ProfileController {
       state = const AsyncData(null);
       return true;
     } catch (e, st) {
-      state = AsyncError(e, st);
+      state = AsyncValue.error(e, st);
       return false;
     }
   }
@@ -161,7 +161,7 @@ class ProfileController extends _$ProfileController {
       state = const AsyncData(null);
       return true;
     } catch (e, st) {
-      state = AsyncError(e, st);
+      state = AsyncValue.error(e, st);
       return false;
     }
   }
@@ -186,7 +186,7 @@ class ProfileController extends _$ProfileController {
       state = const AsyncData(null);
       return true;
     } catch (e, st) {
-      state = AsyncError(e, st);
+      state = AsyncValue.error(e, st);
       return false;
     }
   }
@@ -208,7 +208,7 @@ class ProfileController extends _$ProfileController {
       state = const AsyncData(null);
       return true;
     } catch (e, st) {
-      state = AsyncError(e, st);
+      state = AsyncValue.error(e, st);
       return false;
     }
   }
@@ -230,7 +230,7 @@ class ProfileController extends _$ProfileController {
       state = const AsyncData(null);
       return true;
     } catch (e, st) {
-      state = AsyncError(e, st);
+      state = AsyncValue.error(e, st);
       return false;
     }
   }

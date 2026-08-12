@@ -72,11 +72,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
         // Best-effort: also try Firestore sync in background
         final controller = ref.read(profileControllerProvider.notifier);
-        if (isCoverPhoto) {
-          controller.updateCoverPhotoFromFile(imageFile);
-        } else {
-          controller.updateProfilePhotoFromFile(imageFile);
-        }
+        try {
+          if (isCoverPhoto) {
+            controller.updateCoverPhotoFromFile(imageFile);
+          } else {
+            controller.updateProfilePhotoFromFile(imageFile);
+          }
+        } catch (_) {}
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -399,7 +401,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         'icon': Icons.person,
       },
       {
-        'url': 'https://images.unsplash.com/photo-1599566150163-29194dcabd9c?auto=format&fit=crop&w=500&q=80',
+        'url': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80',
         'label': 'Studio Headshot',
         'icon': Icons.portrait,
       },
@@ -634,11 +636,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
       // Best-effort Firestore sync
       final controller = ref.read(profileControllerProvider.notifier);
-      if (isCoverPhoto) {
-        controller.updateCoverPhotoFromFile(file);
-      } else {
-        controller.updateProfilePhotoFromFile(file);
-      }
+      try {
+        if (isCoverPhoto) {
+          controller.updateCoverPhotoFromFile(file);
+        } else {
+          controller.updateProfilePhotoFromFile(file);
+        }
+      } catch (_) {}
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -677,11 +681,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
     // Best-effort Firestore sync
     final controller = ref.read(profileControllerProvider.notifier);
-    if (isCoverPhoto) {
-      controller.updateCoverPhotoFromUrl(url);
-    } else {
-      controller.updateProfilePhotoFromUrl(url);
-    }
+    try {
+      if (isCoverPhoto) {
+        controller.updateCoverPhotoFromUrl(url);
+      } else {
+        controller.updateProfilePhotoFromUrl(url);
+      }
+    } catch (_) {}
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1304,178 +1310,397 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   // ════════════════════════════════════════════════════════════════════════════
   void _showBadgeDetailModal(Map<String, dynamic> badge) {
     HapticFeedback.mediumImpact();
+    final badgeColor = badge['color'] as Color;
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: (badge['color'] as Color).withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                badge['icon'] as IconData,
-                size: 48,
-                color: badge['color'] as Color,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              badge['label'] as String,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF1A0A0E),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: (badge['color'] as Color).withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                'Unlocked ${badge['earnedDate']} • ${badge['xp']}',
-                style: TextStyle(
-                  color: badge['color'] as Color,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              badgeColor.withValues(alpha: 0.12),
+              Colors.white,
+              Colors.white,
+            ],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                  color: badgeColor.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ),
-            const SizedBox(height: 14),
-            Text(
-              badge['desc'] as String,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF6B4A52),
-                fontSize: 14,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Shared "${badge['label']}" badge to your feed!'),
-                      backgroundColor: const Color(0xFF00C9A7),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF670627),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+              const SizedBox(height: 24),
+              // Glowing badge icon
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      badgeColor.withValues(alpha: 0.25),
+                      badgeColor.withValues(alpha: 0.05),
+                      Colors.transparent,
+                    ],
+                    stops: const [0.0, 0.6, 1.0],
                   ),
                 ),
-                icon: const Icon(Icons.share_rounded, size: 18, color: Colors.white),
-                label: const Text(
-                  'Share Achievement',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        badgeColor,
+                        badgeColor.withValues(alpha: 0.7),
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: badgeColor.withValues(alpha: 0.45),
+                        blurRadius: 24,
+                        spreadRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    badge['icon'] as IconData,
+                    size: 44,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 18),
+              // Badge name
+              Text(
+                badge['label'] as String,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1A0A0E),
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Date & XP row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A0A0E).withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF6B4A52)),
+                        const SizedBox(width: 4),
+                        Text(
+                          badge['earnedDate'] as String,
+                          style: const TextStyle(
+                            color: Color(0xFF6B4A52),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [badgeColor, badgeColor.withValues(alpha: 0.8)],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: badgeColor.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.bolt_rounded, size: 14, color: Colors.white),
+                        const SizedBox(width: 2),
+                        Text(
+                          badge['xp'] as String,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              // Description
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F6F4),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  badge['desc'] as String,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFF6B4A52),
+                    fontSize: 14,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Share button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Shared "${badge['label']}" badge to your feed!'),
+                        backgroundColor: const Color(0xFF00C9A7),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A0A0E),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  icon: const Icon(Icons.share_rounded, size: 18, color: Colors.white),
+                  label: const Text(
+                    'Share Achievement',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildAchievementBadgesCard() {
-    return _buildCard(
+    final earnedCount = _badges.length;
+    const totalPossible = 12;
+    final progress = earnedCount / totalPossible;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: const Color(0xFFEAE7E2),
+          width: 1,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x08000000),
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          // ── Smart Minimal Header ──
+          Row(
             children: [
-              Icon(Icons.workspace_premium, color: Color(0xFFFFD700), size: 22),
-              SizedBox(width: 8),
-              Text(
+              const Icon(
+                Icons.military_tech_rounded,
+                color: Color(0xFF670627),
+                size: 22,
+              ),
+              const SizedBox(width: 8),
+              const Text(
                 'Achievements',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 17,
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF1A0A0E),
+                  letterSpacing: -0.3,
                 ),
               ),
-              Spacer(),
+              const SizedBox(width: 8),
               Text(
-                '5 earned',
-                style: TextStyle(
+                '•  $earnedCount earned',
+                style: const TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF6B4A52),
-                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF8C7A82),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              // Minimal Pill Chip
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF670627).withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$earnedCount / $totalPossible Unlocked',
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF670627),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
+          // ── Smooth Minimal Progress Bar ──
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 4,
+              backgroundColor: const Color(0xFFF3EFEA),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF670627)),
+            ),
+          ),
+          const SizedBox(height: 18),
+          // ── Smart Minimal Badge Items Grid ──
           SizedBox(
-            height: 100,
+            height: 118,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: _badges.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
               itemBuilder: (context, index) {
                 final badge = _badges[index];
+                final badgeColor = badge['color'] as Color;
                 return GestureDetector(
                   onTap: () => _showBadgeDetailModal(badge),
                   child: Container(
-                    width: 85,
-                    padding: const EdgeInsets.all(10),
+                    width: 96,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                     decoration: BoxDecoration(
-                      color: (badge['color'] as Color).withOpacity(0.08),
+                      color: const Color(0xFFFAF8F5),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: (badge['color'] as Color).withOpacity(0.2),
+                        color: const Color(0xFFEFECE6),
+                        width: 1,
                       ),
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        // Soft Icon Container
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          width: 40,
+                          height: 40,
                           decoration: BoxDecoration(
-                            color: (badge['color'] as Color).withOpacity(0.15),
+                            color: badgeColor.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             badge['icon'] as IconData,
-                            color: badge['color'] as Color,
-                            size: 22,
+                            color: badgeColor,
+                            size: 20,
                           ),
                         ),
                         const SizedBox(height: 8),
+                        // Badge Name
                         Text(
                           badge['label'] as String,
-                          style: TextStyle(
-                            fontSize: 9,
+                          style: const TextStyle(
+                            fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: badge['color'] as Color,
+                            color: Color(0xFF1A0A0E),
+                            height: 1.15,
                           ),
                           textAlign: TextAlign.center,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        // XP Tag
+                        Text(
+                          badge['xp'] as String,
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w600,
+                            color: badgeColor,
+                          ),
                         ),
                       ],
                     ),
                   ),
                 );
               },
+            ),
+          ),
+          const SizedBox(height: 14),
+          // ── Minimal Footer Action Row ──
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Full achievements gallery coming soon!'),
+                  backgroundColor: Color(0xFF670627),
+                ),
+              );
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'View All Achievements',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF670627),
+                  ),
+                ),
+                SizedBox(width: 4),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 12,
+                  color: Color(0xFF670627),
+                ),
+              ],
             ),
           ),
         ],

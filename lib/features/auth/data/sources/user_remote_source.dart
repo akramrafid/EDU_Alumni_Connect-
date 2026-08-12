@@ -58,11 +58,15 @@ class FirestoreUserRemoteSource implements IUserRemoteSource {
       final uploadTask = await ref.putFile(file);
       return await uploadTask.ref.getDownloadURL();
     } catch (_) {
-      // Storage fallback: encode as base64 data URL
+      // Storage fallback: use base64 if small (< 350KB), otherwise file path
+      // to avoid exceeding Firestore's 1MB document size limit.
       final bytes = await file.readAsBytes();
-      final base64String = base64Encode(bytes);
-      final mimeType = file.path.endsWith('.png') ? 'image/png' : 'image/jpeg';
-      return 'data:$mimeType;base64,$base64String';
+      if (bytes.length < 350000) {
+        final base64String = base64Encode(bytes);
+        final mimeType = file.path.endsWith('.png') ? 'image/png' : 'image/jpeg';
+        return 'data:$mimeType;base64,$base64String';
+      }
+      return file.path;
     }
   }
 
@@ -74,11 +78,15 @@ class FirestoreUserRemoteSource implements IUserRemoteSource {
       final uploadTask = await ref.putFile(file);
       return await uploadTask.ref.getDownloadURL();
     } catch (_) {
-      // Storage fallback: encode as base64 data URL
+      // Storage fallback: use base64 if small (< 350KB), otherwise file path
+      // to avoid exceeding Firestore's 1MB document size limit.
       final bytes = await file.readAsBytes();
-      final base64String = base64Encode(bytes);
-      final mimeType = file.path.endsWith('.png') ? 'image/png' : 'image/jpeg';
-      return 'data:$mimeType;base64,$base64String';
+      if (bytes.length < 350000) {
+        final base64String = base64Encode(bytes);
+        final mimeType = file.path.endsWith('.png') ? 'image/png' : 'image/jpeg';
+        return 'data:$mimeType;base64,$base64String';
+      }
+      return file.path;
     }
   }
 }
