@@ -115,7 +115,11 @@ class _HomePageState extends ConsumerState<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 1. Dynamic Hero Header & Analytics Deck
-            _buildHeroHeaderAndMetrics(welcomeRole, greetingName),
+            _buildHeroHeaderAndMetrics(
+              welcomeRole,
+              greetingName,
+              photoUrl: user?.photoUrl,
+            ),
             const SizedBox(height: 20),
 
             // 2. Global Quick Search Bar
@@ -146,7 +150,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildHeroHeaderAndMetrics(String welcomeRole, String greetingName) {
+  Widget _buildHeroHeaderAndMetrics(
+    String welcomeRole,
+    String greetingName, {
+    String? photoUrl,
+  }) {
     final timeGreeting = _getTimeBasedGreeting();
 
     return Stack(
@@ -197,7 +205,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                             ],
                           ),
                           child: UserAvatar(
-                            photoUrl: user?.photoUrl,
+                            photoUrl: photoUrl,
                             fullName: greetingName,
                             radius: 26,
                             onTap: () => context.push(AppRoutes.profile),

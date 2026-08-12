@@ -45,11 +45,46 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
 
   // Achievement badges
   final List<Map<String, dynamic>> _badges = [
-    {'icon': Icons.rocket_launch, 'label': 'Early Adopter', 'color': const Color(0xFFFF6B35)},
-    {'icon': Icons.military_tech, 'label': 'Top Contributor', 'color': const Color(0xFFFFD700)},
-    {'icon': Icons.diversity_3, 'label': 'Mentor Star', 'color': const Color(0xFF00C9A7)},
-    {'icon': Icons.emoji_events, 'label': 'Event Champion', 'color': const Color(0xFF845EC2)},
-    {'icon': Icons.code, 'label': 'Code Ninja', 'color': const Color(0xFF0089BA)},
+    {
+      'icon': Icons.rocket_launch,
+      'label': 'Early Adopter',
+      'color': const Color(0xFFFF6B35),
+      'desc': 'Joined EDU Alumni Connect in its launch phase.',
+      'earnedDate': 'Jan 2024',
+      'xp': '+500 XP',
+    },
+    {
+      'icon': Icons.military_tech,
+      'label': 'Top Contributor',
+      'color': const Color(0xFFFFD700),
+      'desc': 'Posted 25+ career insights & answers to student questions.',
+      'earnedDate': 'Mar 2024',
+      'xp': '+750 XP',
+    },
+    {
+      'icon': Icons.diversity_3,
+      'label': 'Mentor Star',
+      'color': const Color(0xFF00C9A7),
+      'desc': 'Completed 10+ 1-on-1 student mentorship sessions.',
+      'earnedDate': 'May 2024',
+      'xp': '+1,000 XP',
+    },
+    {
+      'icon': Icons.emoji_events,
+      'label': 'Event Champion',
+      'color': const Color(0xFF845EC2),
+      'desc': 'Attended 5+ campus hackathons and annual galas.',
+      'earnedDate': 'Jun 2024',
+      'xp': '+400 XP',
+    },
+    {
+      'icon': Icons.code,
+      'label': 'Code Ninja',
+      'color': const Color(0xFF0089BA),
+      'desc': 'Published 3+ open-source campus projects.',
+      'earnedDate': 'Jul 2024',
+      'xp': '+600 XP',
+    },
   ];
 
   // Skills with endorsements
@@ -206,6 +241,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 _buildAboutCard(user.fullName),
                 const SizedBox(height: 12),
                 _buildRecentActivityCard(),
+                const SizedBox(height: 12),
+                _buildPeerRecommendationsCard(),
                 const SizedBox(height: 12),
                 _buildExperienceCard(isStudent),
                 const SizedBox(height: 12),
@@ -891,6 +928,99 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   // ════════════════════════════════════════════════════════════════════════════
   // 3. ACHIEVEMENT BADGES — Horizontal scroll
   // ════════════════════════════════════════════════════════════════════════════
+  void _showBadgeDetailModal(Map<String, dynamic> badge) {
+    HapticFeedback.mediumImpact();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: (badge['color'] as Color).withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                badge['icon'] as IconData,
+                size: 48,
+                color: badge['color'] as Color,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              badge['label'] as String,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF1A0A0E),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: (badge['color'] as Color).withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Unlocked ${badge['earnedDate']} • ${badge['xp']}',
+                style: TextStyle(
+                  color: badge['color'] as Color,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              badge['desc'] as String,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Color(0xFF6B4A52),
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Shared "${badge['label']}" badge to your feed!'),
+                      backgroundColor: const Color(0xFF00C9A7),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF670627),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                icon: const Icon(Icons.share_rounded, size: 18, color: Colors.white),
+                label: const Text(
+                  'Share Achievement',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildAchievementBadgesCard() {
     return _buildCard(
       child: Column(
@@ -928,44 +1058,47 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               separatorBuilder: (_, __) => const SizedBox(width: 12),
               itemBuilder: (context, index) {
                 final badge = _badges[index];
-                return Container(
-                  width: 85,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: (badge['color'] as Color).withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: (badge['color'] as Color).withOpacity(0.2),
+                return GestureDetector(
+                  onTap: () => _showBadgeDetailModal(badge),
+                  child: Container(
+                    width: 85,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: (badge['color'] as Color).withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: (badge['color'] as Color).withOpacity(0.2),
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: (badge['color'] as Color).withOpacity(0.15),
-                          shape: BoxShape.circle,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: (badge['color'] as Color).withOpacity(0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            badge['icon'] as IconData,
+                            color: badge['color'] as Color,
+                            size: 22,
+                          ),
                         ),
-                        child: Icon(
-                          badge['icon'] as IconData,
-                          color: badge['color'] as Color,
-                          size: 22,
+                        const SizedBox(height: 8),
+                        Text(
+                          badge['label'] as String,
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: badge['color'] as Color,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        badge['label'] as String,
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          color: badge['color'] as Color,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
@@ -1220,6 +1353,141 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   // ════════════════════════════════════════════════════════════════════════════
   // 6. PROFILE STRENGTH METER — Segmented bar
   // ════════════════════════════════════════════════════════════════════════════
+  void _showXPTasksModal() {
+    HapticFeedback.lightImpact();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.stars_rounded, color: Color(0xFFFFD700), size: 28),
+                SizedBox(width: 10),
+                Text(
+                  'Rank Up to All-Star',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1A0A0E),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Earn +550 XP to reach the prestigious All-Star tier:',
+              style: TextStyle(color: Color(0xFF6B4A52), fontSize: 13),
+            ),
+            const SizedBox(height: 18),
+            _buildXPTaskTile(
+              title: 'Add 3+ Endorsed Skills',
+              xp: '+200 XP',
+              isDone: false,
+              icon: Icons.code_rounded,
+            ),
+            const SizedBox(height: 10),
+            _buildXPTaskTile(
+              title: 'Host 1 Mentorship Session',
+              xp: '+200 XP',
+              isDone: false,
+              icon: Icons.groups_rounded,
+            ),
+            const SizedBox(height: 10),
+            _buildXPTaskTile(
+              title: 'Share Digital vCard / Profile',
+              xp: '+150 XP',
+              isDone: true,
+              icon: Icons.qr_code_2_rounded,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF670627),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: const Text(
+                  'Got It!',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildXPTaskTile({
+    required String title,
+    required String xp,
+    required bool isDone,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDone
+            ? const Color(0xFF00C9A7).withOpacity(0.08)
+            : const Color(0xFFF5F3F0),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDone ? const Color(0xFF00C9A7) : const Color(0xFFEDE7E3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isDone ? Icons.check_circle_rounded : icon,
+            color: isDone ? const Color(0xFF00C9A7) : const Color(0xFF670627),
+            size: 22,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                color: isDone ? const Color(0xFF00C9A7) : const Color(0xFF1A0A0E),
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: isDone
+                  ? const Color(0xFF00C9A7).withOpacity(0.15)
+                  : const Color(0xFFFFD700).withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              xp,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: isDone ? const Color(0xFF00C9A7) : const Color(0xFFB8860B),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildProfileStrengthMeter() {
     const levels = ['Beginner', 'Intermediate', 'Advanced', 'Expert', 'All-Star'];
     final currentLevel = (_profileCompletion * 5).floor().clamp(0, 4);
@@ -1231,34 +1499,83 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Profile Level',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1A0A0E),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+              const Row(
+                children: [
+                  Text(
+                    'Profile Level',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A0A0E),
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  levels[currentLevel],
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                  SizedBox(width: 6),
+                  Icon(Icons.verified, size: 16, color: Color(0xFF00C9A7)),
+                ],
+              ),
+              GestureDetector(
+                onTap: _showXPTasksModal,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFFA500).withOpacity(0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        levels[currentLevel],
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.info_outline_rounded, size: 12, color: Colors.white),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
+
+          // XP Progress indicator
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '2,450 / 3,000 XP',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF670627),
+                ),
+              ),
+              Text(
+                '550 XP to All-Star 🚀',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF6B4A52),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Segmented Progress Bar
           Row(
             children: List.generate(5, (index) {
               final isActive = index <= currentLevel;
@@ -1273,11 +1590,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 600),
                   curve: Curves.easeOut,
-                  height: 8,
-                  margin: EdgeInsets.only(right: index < 4 ? 4 : 0),
+                  height: 9,
+                  margin: EdgeInsets.only(right: index < 4 ? 5 : 0),
                   decoration: BoxDecoration(
                     color: isActive ? colors[index] : const Color(0xFFEDE7E3),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(5),
+                    boxShadow: isActive
+                        ? [
+                            BoxShadow(
+                              color: colors[index].withOpacity(0.35),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : [],
                   ),
                 ),
               );
@@ -1289,7 +1615,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             children: levels.map((l) {
               return Text(
                 l,
-                style: const TextStyle(fontSize: 8, color: Color(0xFF6B4A52)),
+                style: const TextStyle(fontSize: 8, color: Color(0xFF6B4A52), fontWeight: FontWeight.w600),
               );
             }).toList(),
           ),
@@ -1862,6 +2188,133 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     );
   }
 
+  Widget _buildPeerRecommendationsCard() {
+    final recommendations = [
+      {
+        'name': 'Dr. Arman Hossain',
+        'role': 'Head of Department, CSE',
+        'avatar': 'https://i.pravatar.cc/150?img=60',
+        'quote': 'An outstanding student with exceptional problem solving abilities and leadership.',
+        'date': 'Aug 2024',
+      },
+      {
+        'name': 'Nusrat Jahan',
+        'role': 'Senior Tech Lead at Grab',
+        'avatar': 'https://i.pravatar.cc/150?img=47',
+        'quote': 'Demonstrated top-tier Flutter craftsmanship during campus hackathons.',
+        'date': 'Jun 2024',
+      },
+    ];
+
+    return _buildCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.recommend_rounded, color: Color(0xFF670627), size: 22),
+                  SizedBox(width: 8),
+                  Text(
+                    'Recommendations',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A0A0E),
+                    ),
+                  ),
+                ],
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Recommendation request sent to mentors!'),
+                      backgroundColor: Color(0xFF670627),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.add_rounded, size: 16, color: Color(0xFF670627)),
+                label: const Text(
+                  'Request',
+                  style: TextStyle(
+                    color: Color(0xFF670627),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...recommendations.map((rec) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F3F0),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFEDE7E3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 18,
+                        backgroundImage: NetworkImage(rec['avatar']!),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              rec['name']!,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1A0A0E),
+                              ),
+                            ),
+                            Text(
+                              rec['role']!,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Color(0xFF6B4A52),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        rec['date']!,
+                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '"${rec['quote']}"',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                      color: Color(0xFF4A3040),
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   // ════════════════════════════════════════════════════════════════════════════
   // 13. SKILLS WITH ENDORSEMENT COUNTS
   // ════════════════════════════════════════════════════════════════════════════
@@ -1891,69 +2344,85 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             final skill = _skills[index];
             final progress = (skill['endorsements'] as int) / maxEndorsement;
             final isTop = skill['isTop'] as bool;
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: index < _skills.length - 1 ? 12 : 0,
-              ),
-              child: Row(
-                children: [
-                  if (isTop)
-                    const Padding(
-                      padding: EdgeInsets.only(right: 6),
-                      child: Icon(
-                        Icons.emoji_events,
-                        size: 14,
-                        color: Color(0xFFFFD700),
-                      ),
-                    ),
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      skill['name'] as String,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: isTop ? FontWeight.w700 : FontWeight.w500,
-                        color: const Color(0xFF1A0A0E),
-                      ),
-                    ),
+            return InkWell(
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() {
+                  skill['endorsements'] = (skill['endorsements'] as int) + 1;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Endorsed ${skill['name']}! (+1 Endorsement)'),
+                    duration: const Duration(seconds: 1),
+                    backgroundColor: const Color(0xFF00C9A7),
                   ),
-                  Expanded(
-                    flex: 4,
-                    child: AnimatedBuilder(
-                      animation: _counterAnim,
-                      builder: (context, child) {
-                        return ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: progress * _counterAnim.value,
-                            backgroundColor: const Color(0xFFEDE7E3),
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              isTop
-                                  ? const Color(0xFF670627)
-                                  : const Color(0xFF670627).withOpacity(0.5),
+                );
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: EdgeInsets.only(
+                  bottom: index < _skills.length - 1 ? 12 : 0,
+                ),
+                child: Row(
+                  children: [
+                    if (isTop)
+                      const Padding(
+                        padding: EdgeInsets.only(right: 6),
+                        child: Icon(
+                          Icons.emoji_events,
+                          size: 14,
+                          color: Color(0xFFFFD700),
+                        ),
+                      ),
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        skill['name'] as String,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: isTop ? FontWeight.w700 : FontWeight.w500,
+                          color: const Color(0xFF1A0A0E),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 4,
+                      child: AnimatedBuilder(
+                        animation: _counterAnim,
+                        builder: (context, child) {
+                          return ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: progress * _counterAnim.value,
+                              backgroundColor: const Color(0xFFEDE7E3),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                isTop
+                                    ? const Color(0xFF670627)
+                                    : const Color(0xFF670627).withOpacity(0.5),
+                              ),
+                              minHeight: 6,
                             ),
-                            minHeight: 6,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  SizedBox(
-                    width: 40,
-                    child: Text(
-                      '${skill['endorsements']}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: isTop
-                            ? const Color(0xFF670627)
-                            : const Color(0xFF6B4A52),
+                          );
+                        },
                       ),
-                      textAlign: TextAlign.right,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 40,
+                      child: Text(
+                        '${skill['endorsements']}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isTop
+                              ? const Color(0xFF670627)
+                              : const Color(0xFF6B4A52),
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }),
