@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/user_avatar.dart';
 import '../../data/models/alumni_directory_model.dart';
 
 class AlumniProfilePage extends ConsumerWidget {
@@ -95,11 +96,10 @@ class AlumniProfilePage extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              CircleAvatar(
+              UserAvatar(
+                photoUrl: alumni.photoUrl,
+                fullName: alumni.fullName,
                 radius: 46,
-                backgroundImage: NetworkImage(
-                  alumni.photoUrl ?? 'https://i.pravatar.cc/150?img=5',
-                ),
               ),
               const SizedBox(height: 12),
               Text(

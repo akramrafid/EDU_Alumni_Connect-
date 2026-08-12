@@ -39,4 +39,10 @@ class DummyUserRemoteSource implements IUserRemoteSource {
 
   @override
   Future<String> uploadCertificate(String uid, File file) async => '';
+
+  @override
+  Future<String> uploadProfileImage(String uid, File file) async => file.path;
+
+  @override
+  Future<String> uploadCoverImage(String uid, File file) async => file.path;
 }

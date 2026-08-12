@@ -13,6 +13,7 @@ class UserModel with _$UserModel {
     required UserRole role,
     required VerificationStatus verificationStatus,
     String? photoUrl,
+    String? coverPhotoUrl,
     required String department,
     required int batchYear,
     String? currentCompany,
@@ -72,6 +73,8 @@ class UserModel with _$UserModel {
       verificationStatus: verificationStatus,
       fullName: fullName,
       isEmailVerified: isEmailVerified,
+      photoUrl: photoUrl,
+      coverPhotoUrl: coverPhotoUrl,
     );
   }
 }

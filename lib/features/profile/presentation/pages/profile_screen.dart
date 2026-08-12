@@ -1,14 +1,20 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/di/providers.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/user_avatar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../providers/profile_controller.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Premium Profile Screen — Bold, Modern, Feature-Rich
@@ -177,6 +183,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               isStudent: isStudent,
               department: userDepartment,
               batchYear: userBatch,
+              photoUrl: user.photoUrl,
+              coverPhotoUrl: user.coverPhotoUrl,
             ),
           ),
           // Content cards
@@ -225,6 +233,137 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
   // ════════════════════════════════════════════════════════════════════════════
   // 1. HERO HEADER — Tall gradient + mesh overlay + parallax avatar
   // ════════════════════════════════════════════════════════════════════════════
+  void _showImageSourcePicker(
+    BuildContext context, {
+    required bool isCoverPhoto,
+    required bool hasExistingPhoto,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  isCoverPhoto ? 'Update Cover Photo' : 'Update Profile Photo',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.mulledWine,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFFF3E5F5),
+                    child: Icon(Icons.photo_library, color: AppColors.mulledWine),
+                  ),
+                  title: const Text('Choose from Phone Gallery'),
+                  subtitle: const Text('Select a photo stored on your device'),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    final controller = ref.read(profileControllerProvider.notifier);
+                    final success = isCoverPhoto
+                        ? await controller.updateCoverPhoto(ImageSource.gallery)
+                        : await controller.updateProfilePhoto(ImageSource.gallery);
+                    if (success && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isCoverPhoto
+                                ? 'Cover photo updated successfully!'
+                                : 'Profile photo updated successfully!',
+                          ),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFFE8F5E9),
+                    child: Icon(Icons.camera_alt, color: Colors.green),
+                  ),
+                  title: const Text('Take Photo with Camera'),
+                  subtitle: const Text('Capture a new photo using your camera'),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    final controller = ref.read(profileControllerProvider.notifier);
+                    final success = isCoverPhoto
+                        ? await controller.updateCoverPhoto(ImageSource.camera)
+                        : await controller.updateProfilePhoto(ImageSource.camera);
+                    if (success && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isCoverPhoto
+                                ? 'Cover photo updated successfully!'
+                                : 'Profile photo updated successfully!',
+                          ),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  },
+                ),
+                if (hasExistingPhoto)
+                  ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Color(0xFFFFEBEE),
+                      child: Icon(Icons.delete_outline, color: Colors.red),
+                    ),
+                    title: const Text(
+                      'Remove Photo',
+                      style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: const Text('Revert back to default avatar/background'),
+                    onTap: () async {
+                      Navigator.pop(sheetContext);
+                      final controller = ref.read(profileControllerProvider.notifier);
+                      final success = isCoverPhoto
+                          ? await controller.removeCoverPhoto()
+                          : await controller.removeProfilePhoto();
+                      if (success && mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isCoverPhoto
+                                  ? 'Cover photo removed'
+                                  : 'Profile photo removed',
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // 1. HERO HEADER — Tall gradient + mesh overlay + parallax avatar
+  // ════════════════════════════════════════════════════════════════════════════
   Widget _buildHeroHeader({
     required String fullName,
     required String role,
@@ -232,8 +371,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     required bool isStudent,
     required String department,
     required String batchYear,
+    String? photoUrl,
+    String? coverPhotoUrl,
   }) {
     final parallax = (_scrollOffset * 0.4).clamp(0.0, 60.0);
+
+    DecorationImage? coverDecoration;
+    if (coverPhotoUrl != null && coverPhotoUrl.isNotEmpty) {
+      if (coverPhotoUrl.startsWith('data:image/')) {
+        try {
+          final base64Data = coverPhotoUrl.split(',').last;
+          final bytes = base64Decode(base64Data);
+          coverDecoration = DecorationImage(
+            image: MemoryImage(bytes),
+            fit: BoxFit.cover,
+          );
+        } catch (_) {}
+      } else if (coverPhotoUrl.startsWith('http://') || coverPhotoUrl.startsWith('https://')) {
+        coverDecoration = DecorationImage(
+          image: CachedNetworkImageProvider(coverPhotoUrl),
+          fit: BoxFit.cover,
+        );
+      } else {
+        final file = File(coverPhotoUrl);
+        if (file.existsSync()) {
+          coverDecoration = DecorationImage(
+            image: FileImage(file),
+            fit: BoxFit.cover,
+          );
+        }
+      }
+    }
 
     return Container(
       decoration: const BoxDecoration(
@@ -253,7 +421,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Cover banner with mesh pattern ──
+          // ── Cover banner with mesh pattern / user cover photo ──
           Stack(
             clipBehavior: Clip.none,
             children: [
@@ -262,50 +430,85 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                 child: Container(
                   height: 170,
                   width: double.infinity,
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(
                       bottomLeft: Radius.circular(28),
                       bottomRight: Radius.circular(28),
                     ),
-                    gradient: LinearGradient(
-                      colors: [
-                        Color(0xFF670627),
-                        Color(0xFF3D0018),
-                        Color(0xFF1A000B),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    image: coverDecoration,
+                    gradient: coverDecoration == null
+                        ? const LinearGradient(
+                            colors: [
+                              Color(0xFF670627),
+                              Color(0xFF3D0018),
+                              Color(0xFF1A000B),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
                   ),
                   child: Stack(
                     children: [
-                      // Mesh pattern overlay
-                      CustomPaint(
-                        size: const Size(double.infinity, 170),
-                        painter: _MeshPatternPainter(),
-                      ),
-                      // Camera icon
+                      // Mesh pattern overlay if no custom cover photo
+                      if (coverDecoration == null)
+                        CustomPaint(
+                          size: const Size(double.infinity, 170),
+                          painter: _MeshPatternPainter(),
+                        ),
+                      // Slight dimming overlay for cover image contrast
+                      if (coverDecoration != null)
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(28),
+                              bottomRight: Radius.circular(28),
+                            ),
+                            color: Colors.black.withOpacity(0.25),
+                          ),
+                        ),
+                      // Camera icon to change/upload cover photo
                       Positioned(
                         right: 16,
                         top: 48,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _showImageSourcePicker(
+                              context,
+                              isCoverPhoto: true,
+                              hasExistingPhoto: coverPhotoUrl != null && coverPhotoUrl.isNotEmpty,
+                            ),
                             borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: GestureDetector(
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Cover photo update coming soon!'),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.4),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 1,
                                 ),
-                              );
-                            },
-                            child: const Icon(
-                              Icons.camera_alt_outlined,
-                              color: Colors.white70,
-                              size: 20,
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.camera_alt_outlined,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Edit Cover',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -314,7 +517,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                 ),
               ),
-              // ── Avatar with gradient glow ring ──
+              // ── Avatar with dynamic profile image & glowing ring ──
               Positioned(
                 bottom: -50,
                 left: 24,
@@ -332,56 +535,38 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                   ),
                   child: Stack(
                     children: [
-                      // Gradient glow ring
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(0xFF670627),
-                              Color(0xFFFF6B35),
-                              Color(0xFFFFD700),
-                              Color(0xFF670627),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                      UserAvatar(
+                        photoUrl: photoUrl,
+                        fullName: fullName,
+                        radius: 46,
+                        borderWidth: 4,
+                        borderColor: AppColors.mulledWine,
+                        showCameraIcon: true,
+                        onTap: () => _showImageSourcePicker(
+                          context,
+                          isCoverPhoto: false,
+                          hasExistingPhoto: photoUrl != null && photoUrl.isNotEmpty,
                         ),
-                        child: Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const CircleAvatar(
-                            radius: 46,
-                            backgroundImage: NetworkImage(
-                              'https://i.pravatar.cc/150?img=11',
+                        badge: Positioned(
+                          bottom: 4,
+                          right: 4,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 6,
+                                ),
+                              ],
                             ),
-                          ),
-                        ),
-                      ),
-                      // Verified badge
-                      Positioned(
-                        bottom: 4,
-                        right: 4,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.15),
-                                blurRadius: 6,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.verified,
-                            color: Color(0xFF0A66C2),
-                            size: 24,
+                            child: const Icon(
+                              Icons.verified,
+                              color: Color(0xFF0A66C2),
+                              size: 24,
+                            ),
                           ),
                         ),
                       ),

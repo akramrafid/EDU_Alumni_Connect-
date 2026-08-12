@@ -20,7 +20,22 @@ final authStateProvider = AutoDisposeStreamProvider<AuthUser?>.internal(
 );
 
 typedef AuthStateRef = AutoDisposeStreamProviderRef<AuthUser?>;
-String _$currentUserHash() => r'4b318c678013b167254643d9b39ad17673cfd7de';
+String _$userProfileStreamHash() => r'd1134502e1175d68a72e380a12a0b1fb44637167';
+
+/// See also [userProfileStream].
+@ProviderFor(userProfileStream)
+final userProfileStreamProvider = AutoDisposeStreamProvider<AuthUser?>.internal(
+  userProfileStream,
+  name: r'userProfileStreamProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$userProfileStreamHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef UserProfileStreamRef = AutoDisposeStreamProviderRef<AuthUser?>;
+String _$currentUserHash() => r'91c35042e28884b6785a732466c4f9bb291b4e90';
 
 /// See also [CurrentUser].
 @ProviderFor(CurrentUser)

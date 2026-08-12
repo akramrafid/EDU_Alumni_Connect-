@@ -27,6 +27,7 @@ mixin _$UserModel {
   VerificationStatus get verificationStatus =>
       throw _privateConstructorUsedError;
   String? get photoUrl => throw _privateConstructorUsedError;
+  String? get coverPhotoUrl => throw _privateConstructorUsedError;
   String get department => throw _privateConstructorUsedError;
   int get batchYear => throw _privateConstructorUsedError;
   String? get currentCompany => throw _privateConstructorUsedError;
@@ -53,6 +54,7 @@ abstract class $UserModelCopyWith<$Res> {
       UserRole role,
       VerificationStatus verificationStatus,
       String? photoUrl,
+      String? coverPhotoUrl,
       String department,
       int batchYear,
       String? currentCompany,
@@ -81,6 +83,7 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
     Object? role = null,
     Object? verificationStatus = null,
     Object? photoUrl = freezed,
+    Object? coverPhotoUrl = freezed,
     Object? department = null,
     Object? batchYear = null,
     Object? currentCompany = freezed,
@@ -113,6 +116,10 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
       photoUrl: freezed == photoUrl
           ? _value.photoUrl
           : photoUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      coverPhotoUrl: freezed == coverPhotoUrl
+          ? _value.coverPhotoUrl
+          : coverPhotoUrl // ignore: cast_nullable_to_non_nullable
               as String?,
       department: null == department
           ? _value.department
@@ -161,6 +168,7 @@ abstract class _$$UserModelImplCopyWith<$Res>
       UserRole role,
       VerificationStatus verificationStatus,
       String? photoUrl,
+      String? coverPhotoUrl,
       String department,
       int batchYear,
       String? currentCompany,
@@ -187,6 +195,7 @@ class __$$UserModelImplCopyWithImpl<$Res>
     Object? role = null,
     Object? verificationStatus = null,
     Object? photoUrl = freezed,
+    Object? coverPhotoUrl = freezed,
     Object? department = null,
     Object? batchYear = null,
     Object? currentCompany = freezed,
@@ -219,6 +228,10 @@ class __$$UserModelImplCopyWithImpl<$Res>
       photoUrl: freezed == photoUrl
           ? _value.photoUrl
           : photoUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      coverPhotoUrl: freezed == coverPhotoUrl
+          ? _value.coverPhotoUrl
+          : coverPhotoUrl // ignore: cast_nullable_to_non_nullable
               as String?,
       department: null == department
           ? _value.department
@@ -262,6 +275,7 @@ class _$UserModelImpl extends _UserModel {
       required this.role,
       required this.verificationStatus,
       this.photoUrl,
+      this.coverPhotoUrl,
       required this.department,
       required this.batchYear,
       this.currentCompany,
@@ -287,6 +301,8 @@ class _$UserModelImpl extends _UserModel {
   @override
   final String? photoUrl;
   @override
+  final String? coverPhotoUrl;
+  @override
   final String department;
   @override
   final int batchYear;
@@ -303,7 +319,7 @@ class _$UserModelImpl extends _UserModel {
 
   @override
   String toString() {
-    return 'UserModel(uid: $uid, email: $email, fullName: $fullName, role: $role, verificationStatus: $verificationStatus, photoUrl: $photoUrl, department: $department, batchYear: $batchYear, currentCompany: $currentCompany, jobTitle: $jobTitle, certificateUrl: $certificateUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'UserModel(uid: $uid, email: $email, fullName: $fullName, role: $role, verificationStatus: $verificationStatus, photoUrl: $photoUrl, coverPhotoUrl: $coverPhotoUrl, department: $department, batchYear: $batchYear, currentCompany: $currentCompany, jobTitle: $jobTitle, certificateUrl: $certificateUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -320,6 +336,8 @@ class _$UserModelImpl extends _UserModel {
                 other.verificationStatus == verificationStatus) &&
             (identical(other.photoUrl, photoUrl) ||
                 other.photoUrl == photoUrl) &&
+            (identical(other.coverPhotoUrl, coverPhotoUrl) ||
+                other.coverPhotoUrl == coverPhotoUrl) &&
             (identical(other.department, department) ||
                 other.department == department) &&
             (identical(other.batchYear, batchYear) ||
@@ -346,6 +364,7 @@ class _$UserModelImpl extends _UserModel {
       role,
       verificationStatus,
       photoUrl,
+      coverPhotoUrl,
       department,
       batchYear,
       currentCompany,
@@ -376,6 +395,7 @@ abstract class _UserModel extends UserModel {
       required final UserRole role,
       required final VerificationStatus verificationStatus,
       final String? photoUrl,
+      final String? coverPhotoUrl,
       required final String department,
       required final int batchYear,
       final String? currentCompany,
@@ -400,6 +420,8 @@ abstract class _UserModel extends UserModel {
   VerificationStatus get verificationStatus;
   @override
   String? get photoUrl;
+  @override
+  String? get coverPhotoUrl;
   @override
   String get department;
   @override

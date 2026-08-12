@@ -15,6 +15,7 @@ _$UserModelImpl _$$UserModelImplFromJson(Map<String, dynamic> json) =>
       verificationStatus:
           $enumDecode(_$VerificationStatusEnumMap, json['verificationStatus']),
       photoUrl: json['photoUrl'] as String?,
+      coverPhotoUrl: json['coverPhotoUrl'] as String?,
       department: json['department'] as String,
       batchYear: (json['batchYear'] as num).toInt(),
       currentCompany: json['currentCompany'] as String?,
@@ -33,6 +34,7 @@ Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
       'verificationStatus':
           _$VerificationStatusEnumMap[instance.verificationStatus]!,
       'photoUrl': instance.photoUrl,
+      'coverPhotoUrl': instance.coverPhotoUrl,
       'department': instance.department,
       'batchYear': instance.batchYear,
       'currentCompany': instance.currentCompany,

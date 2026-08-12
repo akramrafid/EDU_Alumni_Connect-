@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/di/providers.dart';
+import '../../data/models/user_model.dart';
 import '../../domain/entities/auth_user.dart';
 
 part 'auth_provider.g.dart';
@@ -15,9 +16,31 @@ Stream<AuthUser?> authState(AuthStateRef ref) {
 }
 
 @riverpod
+Stream<AuthUser?> userProfileStream(UserProfileStreamRef ref) {
+  final authUser = ref.watch(authStateProvider).value;
+  if (authUser == null) return Stream.value(null);
+
+  final firestore = ref.watch(firebaseFirestoreProvider);
+  return firestore.collection('users').doc(authUser.uid).snapshots().map((doc) {
+    final data = doc.data();
+    if (!doc.exists || data == null) return authUser;
+    try {
+      final model = UserModel.fromFirestore(data, doc.id);
+      return model.toEntity(isEmailVerified: authUser.isEmailVerified);
+    } catch (_) {
+      return authUser;
+    }
+  });
+}
+
+@riverpod
 class CurrentUser extends _$CurrentUser {
   @override
   AsyncValue<AuthUser?> build() {
+    final streamUser = ref.watch(userProfileStreamProvider);
+    if (streamUser.hasValue && streamUser.value != null) {
+      return streamUser;
+    }
     return ref.watch(authStateProvider);
   }
 }

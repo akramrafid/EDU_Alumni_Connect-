@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart' as fs;
 import 'package:firebase_storage/firebase_storage.dart' as st;
@@ -8,6 +9,8 @@ abstract class IUserRemoteSource {
   Future<UserModel?> getUserDocument(String uid);
   Future<void> updateUserDocument(String uid, Map<String, dynamic> data);
   Future<String> uploadCertificate(String uid, File file);
+  Future<String> uploadProfileImage(String uid, File file);
+  Future<String> uploadCoverImage(String uid, File file);
 }
 
 class FirestoreUserRemoteSource implements IUserRemoteSource {
@@ -41,10 +44,41 @@ class FirestoreUserRemoteSource implements IUserRemoteSource {
 
   @override
   Future<String> uploadCertificate(String uid, File file) async {
-    // Save as certificates/{uid} with its extension or default to jpg/pdf depending on selection
     final fileExtension = file.path.split('.').last;
     final ref = _storage.ref().child('certificates/$uid.$fileExtension');
     final uploadTask = await ref.putFile(file);
     return uploadTask.ref.getDownloadURL();
+  }
+
+  @override
+  Future<String> uploadProfileImage(String uid, File file) async {
+    try {
+      final fileExtension = file.path.split('.').last;
+      final ref = _storage.ref().child('profiles/$uid/avatar.$fileExtension');
+      final uploadTask = await ref.putFile(file);
+      return await uploadTask.ref.getDownloadURL();
+    } catch (_) {
+      // Storage fallback: encode as base64 data URL
+      final bytes = await file.readAsBytes();
+      final base64String = base64Encode(bytes);
+      final mimeType = file.path.endsWith('.png') ? 'image/png' : 'image/jpeg';
+      return 'data:$mimeType;base64,$base64String';
+    }
+  }
+
+  @override
+  Future<String> uploadCoverImage(String uid, File file) async {
+    try {
+      final fileExtension = file.path.split('.').last;
+      final ref = _storage.ref().child('profiles/$uid/cover.$fileExtension');
+      final uploadTask = await ref.putFile(file);
+      return await uploadTask.ref.getDownloadURL();
+    } catch (_) {
+      // Storage fallback: encode as base64 data URL
+      final bytes = await file.readAsBytes();
+      final base64String = base64Encode(bytes);
+      final mimeType = file.path.endsWith('.png') ? 'image/png' : 'image/jpeg';
+      return 'data:$mimeType;base64,$base64String';
+    }
   }
 }

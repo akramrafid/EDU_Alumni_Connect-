@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/user_avatar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../events/data/models/mock_event.dart';
 
@@ -195,9 +196,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                               ),
                             ],
                           ),
-                          child: const CircleAvatar(
+                          child: UserAvatar(
+                            photoUrl: user?.photoUrl,
+                            fullName: greetingName,
                             radius: 26,
-                            backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                            onTap: () => context.push(AppRoutes.profile),
                           ),
                         ),
                       ),
