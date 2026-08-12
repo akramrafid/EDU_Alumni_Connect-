@@ -49,20 +49,19 @@ GoRouter router(RouterRef ref) {
       final user = authStateAsync.value;
       final matchedLocation = state.matchedLocation;
 
-      final isAuthPage = matchedLocation == AppRoutes.login ||
-          matchedLocation == AppRoutes.register ||
-          matchedLocation == AppRoutes.profileSetup ||
+      // 1. Always allow Splash, Onboarding, Login, Register, and ProfileSetup to display cleanly in sequence
+      final isAuthFlowPage = matchedLocation == AppRoutes.splash ||
           matchedLocation == AppRoutes.onboarding ||
-          matchedLocation == AppRoutes.splash;
+          matchedLocation == AppRoutes.login ||
+          matchedLocation == AppRoutes.register ||
+          matchedLocation == AppRoutes.profileSetup;
 
-      // 1. Always allow Splash and Onboarding to display intro sequence first
-      if (matchedLocation == AppRoutes.splash ||
-          matchedLocation == AppRoutes.onboarding) {
+      if (isAuthFlowPage) {
         return null;
       }
 
       if (user == null) {
-        return isAuthPage ? null : AppRoutes.login;
+        return AppRoutes.login;
       }
 
       if (user.role == UserRole.alumni &&
@@ -74,12 +73,6 @@ GoRouter router(RouterRef ref) {
         if (user.role != UserRole.admin) {
           return AppRoutes.home;
         }
-      }
-
-      if (matchedLocation == AppRoutes.login ||
-          matchedLocation == AppRoutes.register ||
-          matchedLocation == AppRoutes.profileSetup) {
-        return AppRoutes.home;
       }
 
       return null;
