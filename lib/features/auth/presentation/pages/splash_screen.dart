@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../domain/entities/auth_user.dart';
-import '../providers/auth_provider.dart';
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Premium Splash Screen — Animated Logo, Mesh Background & Dynamic Routing
@@ -54,37 +52,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   Future<void> _navigateToNext() async {
     await Future.delayed(const Duration(milliseconds: 1800));
     if (!mounted) return;
-
-    try {
-      final authStateAsync = ref.read(currentUserProvider);
-
-      authStateAsync.when(
-        data: (user) {
-          if (!mounted) return;
-          if (user == null) {
-            context.go(AppRoutes.onboarding);
-          } else {
-            if (user.role == UserRole.alumni &&
-                user.verificationStatus == VerificationStatus.pending) {
-              context.go('/pending');
-            } else {
-              context.go(AppRoutes.home);
-            }
-          }
-        },
-        error: (_, __) {
-          if (!mounted) return;
-          context.go(AppRoutes.login);
-        },
-        loading: () {
-          Future.delayed(const Duration(milliseconds: 500), _navigateToNext);
-        },
-      );
-    } catch (_) {
-      if (mounted) {
-        context.go(AppRoutes.login);
-      }
-    }
+    context.go(AppRoutes.onboarding);
   }
 
   @override

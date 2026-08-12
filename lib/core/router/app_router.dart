@@ -55,6 +55,12 @@ GoRouter router(RouterRef ref) {
           matchedLocation == AppRoutes.onboarding ||
           matchedLocation == AppRoutes.splash;
 
+      // 1. Always allow Splash and Onboarding to display intro sequence first
+      if (matchedLocation == AppRoutes.splash ||
+          matchedLocation == AppRoutes.onboarding) {
+        return null;
+      }
+
       if (user == null) {
         return isAuthPage ? null : AppRoutes.login;
       }
@@ -70,7 +76,9 @@ GoRouter router(RouterRef ref) {
         }
       }
 
-      if (isAuthPage) {
+      if (matchedLocation == AppRoutes.login ||
+          matchedLocation == AppRoutes.register ||
+          matchedLocation == AppRoutes.profileSetup) {
         return AppRoutes.home;
       }
 
