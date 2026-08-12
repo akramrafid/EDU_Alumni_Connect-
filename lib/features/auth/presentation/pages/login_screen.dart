@@ -90,32 +90,68 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen to authentication errors to display SnackBars
+    // Listen to authentication errors to display Pop-up Dialogs
     ref.listen<AsyncValue<void>>(
       signInNotifierProvider,
       (previous, next) {
         next.whenOrNull(
           error: (error, _) {
-            // Cleanly parse error message for snackbar
             final errorMessage = error is Exception
                 ? error.toString().replaceFirst('Exception: ', '')
                 : error.toString();
-            final isNotFound = errorMessage.toLowerCase().contains('sign up') ||
+            final isNotRegistered = errorMessage.toLowerCase().contains('signup') ||
+                errorMessage.toLowerCase().contains('not registered') ||
                 errorMessage.toLowerCase().contains('not found');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(errorMessage),
-                backgroundColor: AppColors.error,
-                duration: const Duration(seconds: 5),
-                action: isNotFound
-                    ? SnackBarAction(
-                        label: 'SIGN UP',
-                        textColor: Colors.white,
-                        onPressed: () {
-                          context.push(AppRoutes.profileSetup);
-                        },
-                      )
-                    : null,
+
+            showDialog(
+              context: context,
+              builder: (dialogContext) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                title: Text(
+                  isNotRegistered ? 'Not Registered' : 'Authentication Error',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.mulledWine,
+                  ),
+                ),
+                content: Text(
+                  errorMessage,
+                  style: const TextStyle(fontSize: 15, color: Colors.black87),
+                ),
+                actions: [
+                  if (isNotRegistered) ...[
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                    ),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.mulledWine,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop();
+                        context.push(AppRoutes.profileSetup);
+                      },
+                      child: const Text('Sign Up'),
+                    ),
+                  ] else ...[
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.mulledWine,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ],
               ),
             );
           },

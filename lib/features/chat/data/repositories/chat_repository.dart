@@ -53,7 +53,6 @@ class FirestoreChatRepository implements IChatRepository {
     return _firestore
         .collection('conversations')
         .where('participantIds', arrayContains: currentUid)
-        .orderBy('lastMessageAt', descending: true)
         .snapshots()
         .map((snapshot) {
       try {
@@ -61,6 +60,14 @@ class FirestoreChatRepository implements IChatRepository {
             .map((doc) =>
                 ConversationModel.fromFirestore(doc.data(), doc.id))
             .toList();
+
+        // Sort in memory by lastMessageAt descending to avoid requiring composite indexes
+        conversations.sort((a, b) {
+          final aTime = a.lastMessageAt ?? DateTime(0);
+          final bTime = b.lastMessageAt ?? DateTime(0);
+          return bTime.compareTo(aTime);
+        });
+
         return right<Failure, List<ConversationModel>>(conversations);
       } catch (e) {
         return left<Failure, List<ConversationModel>>(

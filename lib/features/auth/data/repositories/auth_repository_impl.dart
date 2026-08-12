@@ -47,7 +47,7 @@ class AuthRepositoryImpl implements IAuthRepository {
 
         final userDoc = await _userRemoteSource.getUserDocument(user.uid);
         if (userDoc == null) {
-          return left(const Failure.notFound(message: 'User profile document not found.'));
+          return left(const Failure.notFound(message: "You're not registered. Make sure to signup first."));
         }
 
         return right(userDoc.toEntity(isEmailVerified: user.emailVerified));
@@ -183,7 +183,7 @@ class AuthRepositoryImpl implements IAuthRepository {
       try {
         final userDoc = await _userRemoteSource.getUserDocument(user.uid);
         if (userDoc == null) {
-          return left(const Failure.notFound(message: 'User profile document not found.'));
+          return left(const Failure.notFound(message: "You're not registered. Make sure to signup first."));
         }
         return right(userDoc.toEntity(isEmailVerified: user.emailVerified));
       } catch (e) {
@@ -216,11 +216,11 @@ class AuthRepositoryImpl implements IAuthRepository {
       case 'user-disabled':
         return const Failure.auth(message: 'This user account has been disabled.');
       case 'user-not-found':
-        return const Failure.notFound(message: 'No account found with this email. Please sign up first.');
+        return const Failure.notFound(message: "You're not registered. Make sure to signup first.");
       case 'invalid-credential':
-        return const Failure.auth(message: 'Invalid email or password. If you don\'t have an account, please sign up.');
+        return const Failure.notFound(message: "You're not registered. Make sure to signup first.");
       case 'wrong-password':
-        return const Failure.auth(message: 'Incorrect password. Please try again.');
+        return const Failure.auth(message: 'Wrong password');
       case 'email-already-in-use':
         return const Failure.auth(message: 'An account already exists with this email. Please sign in instead.');
       case 'weak-password':
