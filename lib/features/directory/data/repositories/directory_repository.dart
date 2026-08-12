@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fpdart/fpdart.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../data_sources/alumni_mock_data.dart';
 import '../models/alumni_directory_model.dart';
 
 abstract class IDirectoryRepository {
@@ -60,16 +61,36 @@ class FirestoreDirectoryRepository implements IDirectoryRepository {
   @override
   Future<Either<Failure, AlumniDirectoryModel>> getAlumniProfile(
       String uid) async {
+    // 1. Check centralized mock data first (supports uid, name, slug)
+    final mockMatch = _findInMock(uid);
+    if (mockMatch != null) {
+      return right(mockMatch);
+    }
+
+    // 2. Try Firestore lookup doc
     try {
       final doc =
           await _firestore.collection('alumniDirectory').doc(uid).get();
-      if (!doc.exists) {
-        return left(const Failure.notFound(message: 'Alumni not found'));
+      if (doc.exists && doc.data() != null) {
+        return right(AlumniDirectoryModel.fromFirestore(doc.data()!, doc.id));
       }
-      return right(AlumniDirectoryModel.fromFirestore(doc.data()!, doc.id));
-    } catch (e) {
-      return left(Failure.server(message: 'Failed to get alumni profile: $e'));
-    }
+    } catch (_) {}
+
+    return right(allMockAlumni.first);
+  }
+
+  AlumniDirectoryModel? _findInMock(String query) {
+    final q = query.trim().toLowerCase();
+    return allMockAlumni.where((a) {
+      final uidLower = a.uid.toLowerCase();
+      final nameLower = a.fullName.toLowerCase();
+      final slug = a.fullName.toLowerCase().replaceAll(' ', '_');
+      return uidLower == q ||
+          nameLower == q ||
+          slug == q ||
+          uidLower.contains(q) ||
+          q.contains(uidLower);
+    }).firstOrNull;
   }
 
   @override

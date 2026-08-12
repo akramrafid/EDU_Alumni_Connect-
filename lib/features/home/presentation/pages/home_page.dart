@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,33 +22,43 @@ class _HomePageState extends ConsumerState<HomePage> {
   // Mock Featured Alumni Mentors Spotlight
   final List<Map<String, String>> _featuredMentors = [
     {
-      'id': 'mentor_1',
-      'name': 'Dr. Saima Vance',
-      'role': 'Senior AI Researcher',
-      'company': 'Google Research',
-      'avatar': 'https://i.pravatar.cc/150?img=5',
-      'rating': '4.9 ★',
-      'expertise': 'AI & Machine Learning',
+      'id': 'saima_rahman',
+      'name': 'Saima Rahman',
+      'role': 'Senior Software Engineer',
+      'company': 'Google',
+      'avatar': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=80',
+      'rating': '4.9',
+      'expertise': 'System Architecture',
       'verified': 'true',
     },
     {
-      'id': 'mentor_2',
-      'name': 'Tousif Ahmed',
-      'role': 'Lead Software Engineer',
+      'id': 'asif_ahmed',
+      'name': 'Asif Ahmed',
+      'role': 'Lead Mobile Architect',
       'company': 'Brain Station 23',
-      'avatar': 'https://i.pravatar.cc/150?img=12',
-      'rating': '4.8 ★',
+      'avatar': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80',
+      'rating': '5.0',
       'expertise': 'Flutter & Mobile Arch',
       'verified': 'true',
     },
     {
-      'id': 'mentor_3',
-      'name': 'Nabil Hasan',
-      'role': 'Product Manager',
-      'company': 'Grameenphone',
-      'avatar': 'https://i.pravatar.cc/150?img=15',
-      'rating': '5.0 ★',
-      'expertise': 'Product & Strategy',
+      'id': 'tariqul_islam',
+      'name': 'Tariqul Islam',
+      'role': 'Lead Mobile Architect',
+      'company': 'bKash',
+      'avatar': 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=500&q=80',
+      'rating': '4.9',
+      'expertise': 'FinTech Security',
+      'verified': 'true',
+    },
+    {
+      'id': 'nusrat_jahan',
+      'name': 'Nusrat Jahan',
+      'role': 'Senior IoT & Embedded Lead',
+      'company': 'DataSoft Systems',
+      'avatar': 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=500&q=80',
+      'rating': '4.8',
+      'expertise': 'IoT & Edge Computing',
       'verified': 'true',
     },
   ];
@@ -615,37 +626,70 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Section Header with Glassmorphic Explore All Button
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
-                child: Text(
-                  'Alumni Mentor Spotlight',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+              const Row(
+                children: [
+                  Text(
+                    'Alumni Mentor Spotlight',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1A0A0E),
+                      letterSpacing: -0.3,
+                    ),
                   ),
-                ),
+                  SizedBox(width: 6),
+                  Text('🔥', style: TextStyle(fontSize: 16)),
+                ],
               ),
-              TextButton(
-                onPressed: () => context.go(AppRoutes.mentorship),
-                child: const Text(
-                  'Explore All',
-                  style: TextStyle(
-                    color: AppColors.mulledWine,
-                    fontWeight: FontWeight.bold,
+              InkWell(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.go(AppRoutes.mentorship);
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF670627).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFF670627).withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: const Row(
+                    children: [
+                      Text(
+                        'Explore All',
+                        style: TextStyle(
+                          color: Color(0xFF670627),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12.5,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 14,
+                        color: Color(0xFF670627),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
+
+        // Horizontal Mentors Deck Carousel
         SizedBox(
-          height: 190,
+          height: 220,
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             scrollDirection: Axis.horizontal,
@@ -653,102 +697,143 @@ class _HomePageState extends ConsumerState<HomePage> {
             itemBuilder: (context, index) {
               final mentor = _featuredMentors[index];
               return Container(
-                width: 230,
-                margin: const EdgeInsets.only(right: 14),
+                width: 250,
+                margin: const EdgeInsets.only(right: 16),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: const Color(0xFFEAE7E2)),
+                  boxShadow: const [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                      color: Color(0x08000000),
+                      blurRadius: 16,
+                      offset: Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Top Row: Avatar & Rating Pill
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Stack(
-                          children: [
-                            CircleAvatar(
-                              radius: 22,
-                              backgroundImage: NetworkImage(mentor['avatar']!),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(2),
-                                decoration: const BoxDecoration(
-                                  color: Colors.blue,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.check, size: 8, color: Colors.white),
-                              ),
-                            ),
-                          ],
+                        UserAvatar(
+                          photoUrl: mentor['avatar'],
+                          fullName: mentor['name']!,
+                          radius: 24,
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        // Golden Rating Pill
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF8E7),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFFFE0B2)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
+                              const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFFB300)),
+                              const SizedBox(width: 3),
                               Text(
-                                mentor['name']!,
+                                mentor['rating']!,
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: Colors.black87,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFFE65100),
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              Text(
-                                mentor['role']!,
-                                style: const TextStyle(fontSize: 11, color: Colors.black54),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
+
+                    // Name
                     Text(
-                      mentor['company']!,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.mulledWine),
+                      mentor['name']!,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        color: Color(0xFF1A0A0E),
+                        letterSpacing: -0.2,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
+
+                    // Role
                     Text(
-                      mentor['expertise']!,
-                      style: const TextStyle(fontSize: 11, color: Colors.black45),
+                      mentor['role']!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF6B4A52),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const Spacer(),
+                    const SizedBox(height: 8),
+
+                    // Company Pill & Expertise Micro Tag
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          mentor['rating']!,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.amber),
-                        ),
-                        OutlinedButton(
-                          onPressed: () => context.go(AppRoutes.mentorship),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppColors.mulledWine),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                            minimumSize: Size.zero,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF670627).withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            mentor['company']!,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF670627),
                             ),
                           ),
-                          child: const Text('Connect', style: TextStyle(fontSize: 12, color: AppColors.mulledWine, fontWeight: FontWeight.bold)),
                         ),
                       ],
+                    ),
+                    const Spacer(),
+
+                    // Connect CTA Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          HapticFeedback.mediumImpact();
+                          context.push('${AppRoutes.directory}/${mentor['id']}');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF670627),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.chat_bubble_outline_rounded, size: 14),
+                            SizedBox(width: 6),
+                            Text(
+                              'Connect',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),

@@ -133,7 +133,9 @@ GoRouter router(RouterRef ref) {
               GoRoute(
                 path: ':alumniId',
                 parentNavigatorKey: _rootNavigatorKey,
-                builder: (context, state) => const AlumniProfilePage(),
+                builder: (context, state) => AlumniProfilePage(
+                  alumniId: state.pathParameters['alumniId'],
+                ),
               ),
             ],
           ),

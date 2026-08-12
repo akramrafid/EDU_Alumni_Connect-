@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/user_avatar.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/models/job_model.dart';
 import '../providers/jobs_provider.dart';
@@ -44,41 +45,40 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
                 controller: titleController,
                 decoration: const InputDecoration(labelText: 'Job Title'),
               ),
+              const SizedBox(height: 12),
               TextField(
                 controller: companyController,
-                decoration: const InputDecoration(labelText: 'Company'),
+                decoration: const InputDecoration(labelText: 'Company Name'),
               ),
+              const SizedBox(height: 12),
               TextField(
                 controller: locationController,
-                decoration:
-                    const InputDecoration(labelText: 'Location (e.g. Remote)'),
+                decoration: const InputDecoration(labelText: 'Location'),
               ),
+              const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: selectedType,
-                items: const [
-                  DropdownMenuItem(
-                      value: 'full-time', child: Text('Full-time')),
-                  DropdownMenuItem(
-                      value: 'part-time', child: Text('Part-time')),
-                  DropdownMenuItem(
-                      value: 'internship', child: Text('Internship')),
-                  DropdownMenuItem(
-                      value: 'contract', child: Text('Contract')),
-                ],
-                onChanged: (val) {
-                  if (val != null) selectedType = val;
-                },
                 decoration: const InputDecoration(labelText: 'Job Type'),
+                items: const [
+                  DropdownMenuItem(value: 'full-time', child: Text('Full-Time')),
+                  DropdownMenuItem(value: 'part-time', child: Text('Part-Time')),
+                  DropdownMenuItem(value: 'internship', child: Text('Internship')),
+                  DropdownMenuItem(value: 'remote', child: Text('Remote')),
+                ],
+                onChanged: (v) {
+                  if (v != null) selectedType = v;
+                },
               ),
+              const SizedBox(height: 12),
               TextField(
                 controller: descController,
                 maxLines: 3,
                 decoration: const InputDecoration(labelText: 'Description'),
               ),
+              const SizedBox(height: 12),
               TextField(
                 controller: linkController,
-                decoration:
-                    const InputDecoration(labelText: 'Apply Link (URL)'),
+                decoration: const InputDecoration(labelText: 'Application Link (Optional)'),
               ),
             ],
           ),
@@ -90,44 +90,38 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (titleController.text.isEmpty ||
-                  companyController.text.isEmpty ||
-                  linkController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Please fill all required fields.')),
-                );
-                return;
-              }
-              Navigator.pop(context);
-              final success = await ref
-                  .read(postJobNotifierProvider.notifier)
-                  .post(
-                    title: titleController.text.trim(),
-                    company: companyController.text.trim(),
-                    location: locationController.text.trim(),
-                    jobType: selectedType,
-                    description: descController.text.trim(),
-                    applyLink: linkController.text.trim(),
-                  );
+              if (titleController.text.trim().isNotEmpty &&
+                  companyController.text.trim().isNotEmpty) {
+                final success = await ref
+                    .read(postJobNotifierProvider.notifier)
+                    .post(
+                      title: titleController.text.trim(),
+                      company: companyController.text.trim(),
+                      location: locationController.text.trim(),
+                      jobType: selectedType,
+                      description: descController.text.trim(),
+                      applyLink: linkController.text.trim().isNotEmpty
+                          ? linkController.text.trim()
+                          : '',
+                    );
 
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      success
-                          ? 'Job posted successfully!'
-                          : 'Failed to post job.',
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(success
+                          ? 'Opportunity posted successfully!'
+                          : 'Failed to post opportunity.'),
+                      backgroundColor: success ? Colors.green : AppColors.error,
                     ),
-                    backgroundColor:
-                        success ? Colors.green : AppColors.error,
-                  ),
-                );
+                  );
+                }
               }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.mulledWine,
             ),
-            child: const Text('Post Job'),
+            child: const Text('Post'),
           ),
         ],
       ),
@@ -136,37 +130,35 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(currentUserProvider).value;
-    final isAlumniOrAdmin =
-        user?.role.name == 'alumni' || user?.role.name == 'admin';
+    final userAsync = ref.watch(currentUserProvider);
+    final user = userAsync.value;
     final jobsAsync = ref.watch(activeJobsProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       extendBody: true,
-      floatingActionButton: isAlumniOrAdmin
-          ? Padding(
-              padding: const EdgeInsets.only(bottom: 24.0),
-              child: FloatingActionButton.extended(
-                onPressed: _showPostJobDialog,
-                backgroundColor: AppColors.mulledWine,
-                icon: const Icon(Icons.add, color: Colors.white),
-                label: const Text('Post Job',
-                    style: TextStyle(color: Colors.white)),
-              ),
-            )
-          : null,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: FloatingActionButton.extended(
+          onPressed: _showPostJobDialog,
+          backgroundColor: AppColors.mulledWine,
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: const Text('Post Job', style: TextStyle(color: Colors.white)),
+        ),
+      ),
       body: Column(
         children: [
-          _buildHeader(user?.role.name),
+          _buildHeader(user?.role.name, photoUrl: user?.photoUrl, fullName: user?.fullName),
           _buildSearchAndTitle(),
           Expanded(
             child: jobsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(
+                  child: CircularProgressIndicator(color: AppColors.mulledWine)),
               error: (err, stack) => Center(child: Text('Error: $err')),
               data: (jobs) {
-                final displayJobs =
-                    jobs.isNotEmpty ? jobs : _mockFallbackJobs();
+                final displayJobs = jobs.isNotEmpty
+                    ? jobs
+                    : _mockFallbackJobs();
 
                 final filtered = _searchController.text.trim().isEmpty
                     ? displayJobs
@@ -175,6 +167,8 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
                             j.title.toLowerCase().contains(
                                 _searchController.text.trim().toLowerCase()) ||
                             j.company.toLowerCase().contains(
+                                _searchController.text.trim().toLowerCase()) ||
+                            j.location.toLowerCase().contains(
                                 _searchController.text.trim().toLowerCase()))
                         .toList();
 
@@ -194,7 +188,7 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
     );
   }
 
-  Widget _buildHeader(String? roleName) {
+  Widget _buildHeader(String? roleName, {String? photoUrl, String? fullName}) {
     final welcomeRole = roleName == 'alumni' ? 'Alumni' : 'Student';
 
     return Container(
@@ -211,10 +205,12 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
             children: [
               GestureDetector(
                 onTap: () => context.push(AppRoutes.profile),
-                child: const CircleAvatar(
+                child: UserAvatar(
+                  photoUrl: photoUrl,
+                  fullName: fullName ?? 'User',
                   radius: 18,
-                  backgroundImage:
-                      NetworkImage('https://i.pravatar.cc/150?img=11'),
+                  borderWidth: 1.5,
+                  borderColor: Colors.white.withOpacity(0.5),
                 ),
               ),
               const SizedBox(width: 12),

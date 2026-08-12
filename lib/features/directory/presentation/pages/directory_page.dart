@@ -8,6 +8,10 @@ import '../../../../core/theme/app_colors.dart';
 import '../../data/models/alumni_directory_model.dart';
 import '../providers/directory_provider.dart';
 
+import '../../data/data_sources/alumni_mock_data.dart';
+import '../../../../shared/widgets/user_avatar.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+
 class DirectoryPage extends ConsumerStatefulWidget {
   const DirectoryPage({super.key});
 
@@ -43,6 +47,9 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final userAsync = ref.watch(currentUserProvider);
+    final user = userAsync.value;
+
     final directoryAsync = ref.watch(
       alumniDirectoryProvider(
         department: (_selectedDept.isNotEmpty && _selectedDept != 'All' && _selectedDept != 'Open to Mentorship')
@@ -59,7 +66,7 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 1. Brand Hero Header & Analytics Deck
-            _buildHeroHeaderAndMetrics(),
+            _buildHeroHeaderAndMetrics(user: user),
             const SizedBox(height: 20),
 
             // 2. Featured Alumni Spotlight Banner
@@ -101,7 +108,7 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
     );
   }
 
-  Widget _buildHeroHeaderAndMetrics() {
+  Widget _buildHeroHeaderAndMetrics({dynamic user}) {
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
@@ -154,15 +161,14 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
                       ),
                     ],
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
-                    ),
-                    child: const CircleAvatar(
+                  GestureDetector(
+                    onTap: () => context.push(AppRoutes.profile),
+                    child: UserAvatar(
+                      photoUrl: user?.photoUrl,
+                      fullName: user?.fullName ?? 'Alumni',
                       radius: 20,
-                      backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                      borderWidth: 2,
+                      borderColor: Colors.white.withOpacity(0.4),
                     ),
                   ),
                 ],
@@ -759,47 +765,7 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
   }
 
   List<AlumniDirectoryModel> _mockFallbackAlumni() {
-    return [
-      AlumniDirectoryModel(
-        uid: 'saima_rahman',
-        fullName: 'Saima Rahman',
-        department: 'CSE',
-        batchYear: 2018,
-        currentCompany: 'Google',
-        jobTitle: 'Senior Software Engineer',
-        skills: ['Flutter', 'System Architecture', 'GCP'],
-        location: 'San Francisco, CA',
-        photoUrl: 'https://i.pravatar.cc/150?img=5',
-        bio: 'Building next-gen Android and cross-platform mobile apps.',
-        openToMentorship: true,
-      ),
-      AlumniDirectoryModel(
-        uid: 'tousif_ahmed',
-        fullName: 'Tousif Ahmed',
-        department: 'BBA',
-        batchYear: 2005,
-        currentCompany: 'FinTech Solutions',
-        jobTitle: 'Director of Product',
-        skills: ['Product Strategy', 'FinTech', 'Leadership'],
-        location: 'New York, NY',
-        photoUrl: 'https://i.pravatar.cc/150?img=11',
-        bio: 'Passionate about mobile banking and scaling digital products.',
-        openToMentorship: true,
-      ),
-      AlumniDirectoryModel(
-        uid: 'ananya_chowdhury',
-        fullName: 'Dr. Ananya Chowdhury',
-        department: 'CSE',
-        batchYear: 2021,
-        currentCompany: 'DesignCo',
-        jobTitle: 'UX Researcher',
-        skills: ['User Research', 'Design Systems', 'HCI'],
-        location: 'Austin, TX',
-        photoUrl: 'https://i.pravatar.cc/150?img=9',
-        bio: 'Exploring human-centered design for social impact.',
-        openToMentorship: true,
-      ),
-    ];
+    return allMockAlumni;
   }
 }
 
