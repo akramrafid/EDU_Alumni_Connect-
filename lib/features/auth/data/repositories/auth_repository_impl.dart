@@ -97,6 +97,8 @@ class AuthRepositoryImpl implements IAuthRepository {
 
         await _userRemoteSource.createUserDocument(userModel);
         await _authRemoteSource.sendVerificationEmail();
+        // Explicitly sign out user so they must log in via Login screen
+        await _authRemoteSource.signOut();
 
         return right(userModel.toEntity(isEmailVerified: user.emailVerified));
       } on fb.FirebaseAuthException catch (e) {
@@ -148,6 +150,8 @@ class AuthRepositoryImpl implements IAuthRepository {
 
         await _userRemoteSource.createUserDocument(userModel);
         await _authRemoteSource.sendVerificationEmail();
+        // Explicitly sign out user so they must log in via Login screen
+        await _authRemoteSource.signOut();
 
         return right(userModel.toEntity(isEmailVerified: user.emailVerified));
       } on fb.FirebaseAuthException catch (e) {
@@ -208,15 +212,17 @@ class AuthRepositoryImpl implements IAuthRepository {
   Failure _mapAuthException(fb.FirebaseAuthException e) {
     switch (e.code) {
       case 'invalid-email':
-        return const Failure.auth(message: 'The email address is invalid.');
+        return const Failure.auth(message: 'The email address format is invalid.');
       case 'user-disabled':
         return const Failure.auth(message: 'This user account has been disabled.');
       case 'user-not-found':
-        return const Failure.notFound(message: 'No user account found with this email.');
+        return const Failure.notFound(message: 'No account found with this email. Please sign up first.');
+      case 'invalid-credential':
+        return const Failure.auth(message: 'Invalid email or password. If you don\'t have an account, please sign up.');
       case 'wrong-password':
         return const Failure.auth(message: 'Incorrect password. Please try again.');
       case 'email-already-in-use':
-        return const Failure.auth(message: 'An account already exists with this email.');
+        return const Failure.auth(message: 'An account already exists with this email. Please sign in instead.');
       case 'weak-password':
         return const Failure.auth(message: 'The password provided is too weak.');
       case 'operation-not-allowed':

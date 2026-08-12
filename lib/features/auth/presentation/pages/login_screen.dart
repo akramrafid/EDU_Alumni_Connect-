@@ -100,10 +100,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             final errorMessage = error is Exception
                 ? error.toString().replaceFirst('Exception: ', '')
                 : error.toString();
+            final isNotFound = errorMessage.toLowerCase().contains('sign up') ||
+                errorMessage.toLowerCase().contains('not found');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(errorMessage),
                 backgroundColor: AppColors.error,
+                duration: const Duration(seconds: 5),
+                action: isNotFound
+                    ? SnackBarAction(
+                        label: 'SIGN UP',
+                        textColor: Colors.white,
+                        onPressed: () {
+                          context.push(AppRoutes.profileSetup);
+                        },
+                      )
+                    : null,
               ),
             );
           },

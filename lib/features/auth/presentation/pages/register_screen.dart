@@ -78,18 +78,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             batchYear: batchYear,
           );
       if (success && mounted) {
-        if (AppConfig.useMock) {
-          context.go(AppRoutes.home);
-        } else {
-          context.go(AppRoutes.verifyEmail);
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully! Please sign in with your email and password.'),
+            backgroundColor: AppColors.matcha,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        context.go(AppRoutes.login);
       }
     } else {
       final certificatePath = _certificatePathNotifier.value;
       if (!AppConfig.useMock && certificatePath == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Please upload a degree certificate or student ID for verification.'), // TODO: l10n
+            content: Text('Please upload a degree certificate or student ID for verification.'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -108,11 +111,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           );
 
       if (success && mounted) {
-        if (AppConfig.useMock) {
-          context.go(AppRoutes.home);
-        } else {
-          _showSuccessBottomSheet();
-        }
+        _showSuccessBottomSheet();
       }
     }
   }
@@ -139,7 +138,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 Text(
-                  'Verification Pending', // TODO: l10n
+                  'Verification Pending',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimaryLight,
@@ -148,7 +147,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: AppSpacing.md),
                 const Text(
-                  'Your alumni registration was submitted successfully. An administrator will review your degree certificate or ID card within 24 to 48 hours to grant full directory access.', // TODO: l10n
+                  'Your alumni registration was submitted successfully. An administrator will review your degree certificate or ID card. Please log in with your credentials to check status.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: AppColors.textSecondaryLight,
@@ -157,11 +156,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 AppButton(
-                  label: 'Proceed', // TODO: l10n
+                  label: 'Proceed to Login',
                   isFullWidth: true,
                   onPressed: () {
-                    Navigator.of(context).pop(); // Dismiss bottom sheet
-                    context.go('/pending');
+                    Navigator.of(context).pop();
+                    context.go(AppRoutes.login);
                   },
                 ),
               ],

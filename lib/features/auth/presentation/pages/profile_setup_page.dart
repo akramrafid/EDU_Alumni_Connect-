@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/constants/app_routes.dart';
-import '../../../../core/constants/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
 
@@ -85,15 +84,14 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
     }
 
     if (success && mounted) {
-      if (AppConfig.useMock) {
-        context.go(AppRoutes.home);
-      } else {
-        if (_selectedRole == 'student') {
-          context.go(AppRoutes.verifyEmail);
-        } else {
-          context.go('/pending');
-        }
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created successfully! Please sign in with your email and password.'),
+          backgroundColor: AppColors.matcha,
+          duration: Duration(seconds: 4),
+        ),
+      );
+      context.go(AppRoutes.login);
     }
   }
 
