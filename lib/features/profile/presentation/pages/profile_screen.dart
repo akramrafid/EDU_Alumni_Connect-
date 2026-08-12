@@ -30,10 +30,93 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     with SingleTickerProviderStateMixin {
   bool _isBioExpanded = false;
   bool _isOpenToWork = true;
+  bool _isCoverDragTargetHovered = false;
+  bool _isAvatarDragTargetHovered = false;
   late AnimationController _animController;
   late Animation<double> _counterAnim;
   final ScrollController _scrollController = ScrollController();
   double _scrollOffset = 0;
+
+  // ── Local in-memory photo state (works without Firestore) ──
+  String? _localProfilePhotoUrl;
+  String? _localCoverPhotoUrl;
+
+  Future<void> _handleDroppedImage(dynamic data, {required bool isCoverPhoto}) async {
+    HapticFeedback.mediumImpact();
+
+    File? imageFile;
+    if (data is File) {
+      imageFile = data;
+    } else if (data is String && data.isNotEmpty) {
+      final file = File(data);
+      if (file.existsSync()) {
+        imageFile = file;
+      }
+    }
+
+    if (imageFile != null && imageFile.existsSync()) {
+      // Convert to base64 data URL for immediate local display
+      try {
+        final bytes = await imageFile.readAsBytes();
+        final base64String = base64Encode(bytes);
+        final mimeType = imageFile.path.endsWith('.png') ? 'image/png' : 'image/jpeg';
+        final dataUrl = 'data:$mimeType;base64,$base64String';
+
+        setState(() {
+          if (isCoverPhoto) {
+            _localCoverPhotoUrl = dataUrl;
+          } else {
+            _localProfilePhotoUrl = dataUrl;
+          }
+        });
+
+        // Best-effort: also try Firestore sync in background
+        final controller = ref.read(profileControllerProvider.notifier);
+        if (isCoverPhoto) {
+          controller.updateCoverPhotoFromFile(imageFile);
+        } else {
+          controller.updateProfilePhotoFromFile(imageFile);
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text(
+                    isCoverPhoto
+                        ? 'Cover photo updated successfully!'
+                        : 'Profile photo updated successfully!',
+                  ),
+                ],
+              ),
+              backgroundColor: const Color(0xFF00C9A7),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to process the dropped image.'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not read the dropped file. Try using the picker instead.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
 
   // Profile completion data
   final double _profileCompletion = 0.75;
@@ -218,8 +301,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
               isStudent: isStudent,
               department: userDepartment,
               batchYear: userBatch,
-              photoUrl: user.photoUrl,
-              coverPhotoUrl: user.coverPhotoUrl,
+              photoUrl: _localProfilePhotoUrl ?? user.photoUrl,
+              coverPhotoUrl: _localCoverPhotoUrl ?? user.coverPhotoUrl,
             ),
           ),
           // Content cards
@@ -275,9 +358,59 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     required bool isCoverPhoto,
     required bool hasExistingPhoto,
   }) {
+    // Curated preset photo collections
+    final coverPresets = [
+      {
+        'url': 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
+        'label': 'Team Collaboration',
+        'icon': Icons.groups,
+      },
+      {
+        'url': 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&q=80',
+        'label': 'Campus Library',
+        'icon': Icons.school,
+      },
+      {
+        'url': 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80',
+        'label': 'Modern Office',
+        'icon': Icons.business,
+      },
+      {
+        'url': 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80',
+        'label': 'Tech Workspace',
+        'icon': Icons.computer,
+      },
+    ];
+
+    final avatarPresets = [
+      {
+        'url': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80',
+        'label': 'Professional Male',
+        'icon': Icons.face,
+      },
+      {
+        'url': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=80',
+        'label': 'Professional Female',
+        'icon': Icons.face_3,
+      },
+      {
+        'url': 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=500&q=80',
+        'label': 'Casual Portrait',
+        'icon': Icons.person,
+      },
+      {
+        'url': 'https://images.unsplash.com/photo-1599566150163-29194dcabd9c?auto=format&fit=crop&w=500&q=80',
+        'label': 'Studio Headshot',
+        'icon': Icons.portrait,
+      },
+    ];
+
+    final presets = isCoverPhoto ? coverPresets : avatarPresets;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -305,32 +438,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     color: AppColors.mulledWine,
                   ),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  'Choose a source or pick a preset photo',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                  ),
+                ),
                 const SizedBox(height: 16),
+                // ── Device options ──
                 ListTile(
                   leading: const CircleAvatar(
                     backgroundColor: Color(0xFFF3E5F5),
                     child: Icon(Icons.photo_library, color: AppColors.mulledWine),
                   ),
-                  title: const Text('Choose from Phone Gallery'),
+                  title: const Text('Choose from Gallery'),
                   subtitle: const Text('Select a photo stored on your device'),
                   onTap: () async {
                     Navigator.pop(sheetContext);
-                    final controller = ref.read(profileControllerProvider.notifier);
-                    final success = isCoverPhoto
-                        ? await controller.updateCoverPhoto(ImageSource.gallery)
-                        : await controller.updateProfilePhoto(ImageSource.gallery);
-                    if (success && mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            isCoverPhoto
-                                ? 'Cover photo updated successfully!'
-                                : 'Profile photo updated successfully!',
-                          ),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    }
+                    await _pickImageFromDevice(
+                      ImageSource.gallery,
+                      isCoverPhoto: isCoverPhoto,
+                    );
                   },
                 ),
                 ListTile(
@@ -339,27 +469,95 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                     child: Icon(Icons.camera_alt, color: Colors.green),
                   ),
                   title: const Text('Take Photo with Camera'),
-                  subtitle: const Text('Capture a new photo using your camera'),
+                  subtitle: const Text('Capture a new photo right now'),
                   onTap: () async {
                     Navigator.pop(sheetContext);
-                    final controller = ref.read(profileControllerProvider.notifier);
-                    final success = isCoverPhoto
-                        ? await controller.updateCoverPhoto(ImageSource.camera)
-                        : await controller.updateProfilePhoto(ImageSource.camera);
-                    if (success && mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            isCoverPhoto
-                                ? 'Cover photo updated successfully!'
-                                : 'Profile photo updated successfully!',
-                          ),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    }
+                    await _pickImageFromDevice(
+                      ImageSource.camera,
+                      isCoverPhoto: isCoverPhoto,
+                    );
                   },
                 ),
+                const Divider(height: 24),
+                // ── Preset photos section ──
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 8),
+                    child: Row(
+                      children: [
+                        Icon(Icons.auto_awesome, size: 18, color: Colors.amber[700]),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Preset Photos',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3E5F5),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text(
+                            'Tap to apply instantly',
+                            style: TextStyle(fontSize: 10, color: AppColors.mulledWine),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: 90,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: presets.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (_, index) {
+                      final preset = presets[index];
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.pop(sheetContext);
+                          _applyPresetPhoto(
+                            preset['url'] as String,
+                            isCoverPhoto: isCoverPhoto,
+                          );
+                        },
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: const Color(0xFF670627).withValues(alpha: 0.3),
+                                  width: 2,
+                                ),
+                                image: DecorationImage(
+                                  image: CachedNetworkImageProvider(preset['url'] as String),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              preset['label'] as String,
+                              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
                 if (hasExistingPhoto)
                   ListTile(
                     leading: const CircleAvatar(
@@ -370,24 +568,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
                       'Remove Photo',
                       style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
                     ),
-                    subtitle: const Text('Revert back to default avatar/background'),
-                    onTap: () async {
+                    subtitle: const Text('Revert back to default'),
+                    onTap: () {
                       Navigator.pop(sheetContext);
+                      setState(() {
+                        if (isCoverPhoto) {
+                          _localCoverPhotoUrl = null;
+                        } else {
+                          _localProfilePhotoUrl = null;
+                        }
+                      });
+                      // Best-effort Firestore cleanup
                       final controller = ref.read(profileControllerProvider.notifier);
-                      final success = isCoverPhoto
-                          ? await controller.removeCoverPhoto()
-                          : await controller.removeProfilePhoto();
-                      if (success && mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              isCoverPhoto
-                                  ? 'Cover photo removed'
-                                  : 'Profile photo removed',
-                            ),
-                          ),
-                        );
+                      if (isCoverPhoto) {
+                        controller.removeCoverPhoto();
+                      } else {
+                        controller.removeProfilePhoto();
                       }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isCoverPhoto ? 'Cover photo removed' : 'Profile photo removed',
+                          ),
+                        ),
+                      );
                     },
                   ),
               ],
@@ -396,6 +600,107 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         );
       },
     );
+  }
+
+  /// Pick image from Gallery/Camera → store as base64 in local state for instant display
+  Future<void> _pickImageFromDevice(
+    ImageSource source, {
+    required bool isCoverPhoto,
+  }) async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: isCoverPhoto ? 1920 : 1024,
+        maxHeight: isCoverPhoto ? 1080 : 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) return; // User cancelled
+
+      final file = File(pickedFile.path);
+      final bytes = await file.readAsBytes();
+      final base64String = base64Encode(bytes);
+      final mimeType = pickedFile.path.endsWith('.png') ? 'image/png' : 'image/jpeg';
+      final dataUrl = 'data:$mimeType;base64,$base64String';
+
+      setState(() {
+        if (isCoverPhoto) {
+          _localCoverPhotoUrl = dataUrl;
+        } else {
+          _localProfilePhotoUrl = dataUrl;
+        }
+      });
+
+      // Best-effort Firestore sync
+      final controller = ref.read(profileControllerProvider.notifier);
+      if (isCoverPhoto) {
+        controller.updateCoverPhotoFromFile(file);
+      } else {
+        controller.updateProfilePhotoFromFile(file);
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isCoverPhoto
+                  ? 'Cover photo updated successfully!'
+                  : 'Profile photo updated successfully!',
+            ),
+            backgroundColor: const Color(0xFF00C9A7),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not pick photo: ${e.toString().split('\n').first}'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Apply a preset URL photo directly to local state (no gallery or Firestore needed)
+  void _applyPresetPhoto(String url, {required bool isCoverPhoto}) {
+    HapticFeedback.mediumImpact();
+    setState(() {
+      if (isCoverPhoto) {
+        _localCoverPhotoUrl = url;
+      } else {
+        _localProfilePhotoUrl = url;
+      }
+    });
+
+    // Best-effort Firestore sync
+    final controller = ref.read(profileControllerProvider.notifier);
+    if (isCoverPhoto) {
+      controller.updateCoverPhotoFromUrl(url);
+    } else {
+      controller.updateProfilePhotoFromUrl(url);
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                isCoverPhoto
+                    ? 'Cover photo applied!'
+                    : 'Profile photo applied!',
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF00C9A7),
+        ),
+      );
+    }
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -462,153 +767,222 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           Stack(
             clipBehavior: Clip.none,
             children: [
-              Transform.translate(
-                offset: Offset(0, -parallax),
-                child: Container(
-                  height: 170,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(28),
-                      bottomRight: Radius.circular(28),
-                    ),
-                    image: coverDecoration,
-                    gradient: coverDecoration == null
-                        ? const LinearGradient(
-                            colors: [
-                              Color(0xFF670627),
-                              Color(0xFF3D0018),
-                              Color(0xFF1A000B),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                        : null,
-                  ),
-                  child: Stack(
-                    children: [
-                      // Mesh pattern overlay if no custom cover photo
-                      if (coverDecoration == null)
-                        CustomPaint(
-                          size: const Size(double.infinity, 170),
-                          painter: _MeshPatternPainter(),
+              DragTarget<Object>(
+                onWillAcceptWithDetails: (details) {
+                  setState(() => _isCoverDragTargetHovered = true);
+                  return true;
+                },
+                onLeave: (_) => setState(() => _isCoverDragTargetHovered = false),
+                onAcceptWithDetails: (details) async {
+                  setState(() => _isCoverDragTargetHovered = false);
+                  await _handleDroppedImage(details.data, isCoverPhoto: true);
+                },
+                builder: (context, candidateData, rejectedData) {
+                  return Transform.translate(
+                    offset: Offset(0, -parallax),
+                    child: Container(
+                      height: 170,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(28),
+                          bottomRight: Radius.circular(28),
                         ),
-                      // Slight dimming overlay for cover image contrast
-                      if (coverDecoration != null)
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.only(
-                              bottomLeft: Radius.circular(28),
-                              bottomRight: Radius.circular(28),
+                        image: coverDecoration,
+                        border: candidateData.isNotEmpty || _isCoverDragTargetHovered
+                            ? Border.all(color: const Color(0xFFFFD700), width: 3)
+                            : null,
+                        gradient: coverDecoration == null
+                            ? const LinearGradient(
+                                colors: [
+                                  Color(0xFF670627),
+                                  Color(0xFF3D0018),
+                                  Color(0xFF1A000B),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : null,
+                      ),
+                      child: Stack(
+                        children: [
+                          if (coverDecoration == null)
+                            CustomPaint(
+                              size: const Size(double.infinity, 170),
+                              painter: _MeshPatternPainter(),
                             ),
-                            color: Colors.black.withOpacity(0.25),
-                          ),
-                        ),
-                      // Camera icon to change/upload cover photo
-                      Positioned(
-                        right: 16,
-                        top: 48,
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => _showImageSourcePicker(
-                              context,
-                              isCoverPhoto: true,
-                              hasExistingPhoto: coverPhotoUrl != null && coverPhotoUrl.isNotEmpty,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
+                          if (coverDecoration != null)
+                            Container(
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.4),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.3),
-                                  width: 1,
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(28),
+                                  bottomRight: Radius.circular(28),
+                                ),
+                                color: Colors.black.withOpacity(0.25),
+                              ),
+                            ),
+                          if (candidateData.isNotEmpty || _isCoverDragTargetHovered)
+                            Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF670627).withOpacity(0.85),
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(28),
+                                  bottomRight: Radius.circular(28),
                                 ),
                               ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.camera_alt_outlined,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Edit Cover',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
+                              child: const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.file_download_rounded, color: Colors.white, size: 36),
+                                    SizedBox(height: 6),
+                                    Text(
+                                      '📥 Drop Image to Upload Cover',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          Positioned(
+                            right: 16,
+                            top: 48,
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => _showImageSourcePicker(
+                                  context,
+                                  isCoverPhoto: true,
+                                  hasExistingPhoto: coverPhotoUrl != null && coverPhotoUrl.isNotEmpty,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.4),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 1,
                                     ),
                                   ),
-                                ],
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.camera_alt_outlined,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        'Edit Cover / Drop 📥',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
               // ── Avatar with dynamic profile image & glowing ring ──
               Positioned(
                 bottom: -50,
                 left: 24,
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF670627).withOpacity(0.35),
-                        blurRadius: 24,
-                        spreadRadius: 4,
-                        offset: const Offset(0, 6),
+                child: DragTarget<Object>(
+                  onWillAcceptWithDetails: (details) {
+                    setState(() => _isAvatarDragTargetHovered = true);
+                    return true;
+                  },
+                  onLeave: (_) => setState(() => _isAvatarDragTargetHovered = false),
+                  onAcceptWithDetails: (details) async {
+                    setState(() => _isAvatarDragTargetHovered = false);
+                    await _handleDroppedImage(details.data, isCoverPhoto: false);
+                  },
+                  builder: (context, candidateData, rejectedData) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF670627).withOpacity(0.35),
+                            blurRadius: 24,
+                            spreadRadius: 4,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Stack(
-                    children: [
-                      UserAvatar(
-                        photoUrl: photoUrl,
-                        fullName: fullName,
-                        radius: 46,
-                        borderWidth: 4,
-                        borderColor: AppColors.mulledWine,
-                        showCameraIcon: true,
-                        onTap: () => _showImageSourcePicker(
-                          context,
-                          isCoverPhoto: false,
-                          hasExistingPhoto: photoUrl != null && photoUrl.isNotEmpty,
-                        ),
-                        badge: Positioned(
-                          bottom: 4,
-                          right: 4,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.15),
-                                  blurRadius: 6,
-                                ),
-                              ],
+                      child: Stack(
+                        children: [
+                          UserAvatar(
+                            photoUrl: photoUrl,
+                            fullName: fullName,
+                            radius: 46,
+                            borderWidth: candidateData.isNotEmpty || _isAvatarDragTargetHovered ? 5 : 4,
+                            borderColor: candidateData.isNotEmpty || _isAvatarDragTargetHovered
+                                ? const Color(0xFF00C9A7)
+                                : AppColors.mulledWine,
+                            showCameraIcon: true,
+                            onTap: () => _showImageSourcePicker(
+                              context,
+                              isCoverPhoto: false,
+                              hasExistingPhoto: photoUrl != null && photoUrl.isNotEmpty,
                             ),
-                            child: const Icon(
-                              Icons.verified,
-                              color: Color(0xFF0A66C2),
-                              size: 24,
+                            badge: Positioned(
+                              bottom: 4,
+                              right: 4,
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.15),
+                                      blurRadius: 6,
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.verified,
+                                  color: Color(0xFF0A66C2),
+                                  size: 24,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          if (candidateData.isNotEmpty || _isAvatarDragTargetHovered)
+                            Positioned.fill(
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  color: Color(0xCC00C9A7),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.file_download_rounded,
+                                  color: Colors.white,
+                                  size: 36,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
             ],

@@ -140,4 +140,98 @@ class ProfileController extends _$ProfileController {
       return false;
     }
   }
+
+  /// Update profile photo directly from a File (e.g. dragged from PC)
+  Future<bool> updateProfilePhotoFromFile(File file) async {
+    final user = ref.read(currentUserProvider).value;
+    if (user == null) return false;
+
+    try {
+      state = const AsyncLoading();
+      final userRemote = ref.read(userRemoteSourceProvider);
+      final firestore = ref.read(firebaseFirestoreProvider);
+
+      final photoUrl = await userRemote.uploadProfileImage(user.uid, file);
+
+      await firestore.collection('users').doc(user.uid).update({
+        'photoUrl': photoUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      state = const AsyncData(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return false;
+    }
+  }
+
+  /// Update cover photo directly from a File (e.g. dragged from PC)
+  Future<bool> updateCoverPhotoFromFile(File file) async {
+    final user = ref.read(currentUserProvider).value;
+    if (user == null) return false;
+
+    try {
+      state = const AsyncLoading();
+      final userRemote = ref.read(userRemoteSourceProvider);
+      final firestore = ref.read(firebaseFirestoreProvider);
+
+      final coverUrl = await userRemote.uploadCoverImage(user.uid, file);
+
+      await firestore.collection('users').doc(user.uid).update({
+        'coverPhotoUrl': coverUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      state = const AsyncData(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return false;
+    }
+  }
+
+  /// Update profile photo from direct URL/Preset
+  Future<bool> updateProfilePhotoFromUrl(String photoUrl) async {
+    final user = ref.read(currentUserProvider).value;
+    if (user == null) return false;
+
+    try {
+      state = const AsyncLoading();
+      final firestore = ref.read(firebaseFirestoreProvider);
+
+      await firestore.collection('users').doc(user.uid).update({
+        'photoUrl': photoUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      state = const AsyncData(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return false;
+    }
+  }
+
+  /// Update cover photo from direct URL/Preset
+  Future<bool> updateCoverPhotoFromUrl(String coverUrl) async {
+    final user = ref.read(currentUserProvider).value;
+    if (user == null) return false;
+
+    try {
+      state = const AsyncLoading();
+      final firestore = ref.read(firebaseFirestoreProvider);
+
+      await firestore.collection('users').doc(user.uid).update({
+        'coverPhotoUrl': coverUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      state = const AsyncData(null);
+      return true;
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      return false;
+    }
+  }
 }
