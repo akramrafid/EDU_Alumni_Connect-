@@ -95,7 +95,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           children: [
             // 1. Dynamic Hero Header & Metrics Deck
             _buildHeroHeaderAndMetrics(welcomeRole, greetingName),
-            const SizedBox(height: 24),
+            const SizedBox(height: 14),
 
             // 2. Featured Campus Event Hero Spotlight Banner
             _buildFeaturedHeroBanner(),
@@ -128,11 +128,11 @@ class _HomePageState extends ConsumerState<HomePage> {
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
       children: [
-        Container(height: 270, color: Colors.transparent),
+        Container(height: 215, color: Colors.transparent),
         
         // Brand Dark Red Top Header
         Container(
-          height: 210,
+          height: 175,
           decoration: const BoxDecoration(
             color: AppColors.mulledWine,
             borderRadius: BorderRadius.vertical(
@@ -241,7 +241,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
         // Metrics Deck Overlapping Header
         Positioned(
-          top: 140,
+          top: 125,
           left: 24,
           right: 24,
           child: Container(
