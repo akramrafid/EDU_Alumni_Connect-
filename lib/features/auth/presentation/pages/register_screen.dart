@@ -268,7 +268,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           return AppTextField(
                             controller: _emailController,
                             label: isStudent ? 'University Email' : 'Email Address', // TODO: l10n
-                            hint: isStudent ? 'username@eastdelta.edu.bd' : 'username@gmail.com', // TODO: l10n
+                            hint: isStudent ? 'id@eastdelta.edu.bd' : 'id@eastdelta.edu.bd', // TODO: l10n
                             keyboardType: TextInputType.emailAddress,
                             prefixIcon: const Icon(Icons.email_outlined),
                             enabled: !isLoading,

@@ -205,7 +205,7 @@ class _ProfileSetupPageState extends ConsumerState<ProfileSetupPage> {
                         _buildTextField(
                           controller: _emailController,
                           label: 'University Email',
-                          hint: 'jane.doe@university.edu',
+                          hint: 'id@eastdelta.edu.bd',
                           enabled: !isLoading,
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
