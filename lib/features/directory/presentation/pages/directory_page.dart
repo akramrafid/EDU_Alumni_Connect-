@@ -21,8 +21,9 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
   bool _onlyOpenToMentorship = false;
   String _selectedRoleFilter = 'All';
 
-  // Connected state tracker for interactive feedback
+  // Connected & Bookmarked state trackers for interactive UI feedback
   final Set<String> _connectedUids = {'saima_rahman'};
+  final Set<String> _bookmarkedUids = {'tousif_ahmed'};
 
   final List<String> _departments = [
     'All',
@@ -52,19 +53,34 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        bottom: false,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 120),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
+            // 1. Brand Hero Header & Analytics Deck
+            _buildHeroHeaderAndMetrics(),
+            const SizedBox(height: 20),
+
+            // 2. Featured Alumni Spotlight Banner
+            _buildFeaturedAlumniSpotlight(),
+            const SizedBox(height: 24),
+
+            // 3. Search Bar & Filter Controls
             _buildSearchBar(),
+            const SizedBox(height: 12),
             _buildDepartmentFilterBar(),
-            const SizedBox(height: 8),
-            Expanded(
+            const SizedBox(height: 16),
+
+            // 4. Alumni Directory Members List
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: directoryAsync.when(
                 loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.mulledWine),
+                  child: Padding(
+                    padding: EdgeInsets.all(40.0),
+                    child: CircularProgressIndicator(color: AppColors.mulledWine),
+                  ),
                 ),
                 error: (err, stack) {
                   final fallbackList = _mockFallbackAlumni();
@@ -85,60 +101,305 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
     );
   }
 
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildHeroHeaderAndMetrics() {
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
+      children: [
+        const SizedBox(height: 235),
+        
+        // Brand Multi-Stop Gradient Top Header
+        Container(
+          height: 190,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF4A0000),
+                AppColors.mulledWine,
+                Color(0xFF8B1A1A),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(32),
+            ),
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 52, 24, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Directory',
-                style: TextStyle(
-                  fontSize: 28,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Alumni Directory',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Connect with 1,250+ EDU graduates worldwide',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
+                    ),
+                    child: const CircleAvatar(
+                      radius: 20,
+                      backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        // Metrics Deck Overlapping Header
+        Positioned(
+          top: 125,
+          left: 20,
+          right: 20,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                _buildStatItem(
+                  title: 'TOTAL MEMBERS',
+                  value: '1,250+',
+                  trend: 'Global',
+                ),
+                Container(height: 36, width: 1, color: Colors.grey.shade200),
+                _buildStatItem(
+                  title: 'ACTIVE MENTORS',
+                  value: '85+',
+                  trend: 'Available',
+                ),
+                Container(height: 36, width: 1, color: Colors.grey.shade200),
+                _buildStatItem(
+                  title: 'COMPANIES',
+                  value: '320+',
+                  trend: 'Top Tech',
+                ),
+                Container(height: 36, width: 1, color: Colors.grey.shade200),
+                _buildStatItem(
+                  title: 'COUNTRIES',
+                  value: '18+',
+                  trend: 'Overseas',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatItem({
+    required String title,
+    required String value,
+    required String trend,
+  }) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              color: Colors.black45,
+              letterSpacing: 0.3,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.mulledWine,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.mulledWine.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.public, color: AppColors.mulledWine, size: 14),
-                    SizedBox(width: 4),
-                    Text(
-                      '1,250+ Members',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.mulledWine,
-                      ),
-                    ),
-                  ],
+                  height: 1,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          const Text(
-            'Connect with East Delta University students, alumni & faculty globally.',
-            style: TextStyle(fontSize: 13, color: Colors.black54),
+          const SizedBox(height: 2),
+          Text(
+            trend,
+            style: const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF2E7D32),
+            ),
           ),
         ],
       ),
     );
   }
 
+  Widget _buildFeaturedAlumniSpotlight() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1E0000), AppColors.mulledWine],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.mulledWine.withOpacity(0.25),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.workspace_premium, color: Colors.amber, size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        'ALUMNI LEADER SPOTLIGHT',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Text(
+                  'CLASS OF \'18',
+                  style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.amber, width: 2),
+                  ),
+                  child: const CircleAvatar(
+                    radius: 28,
+                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=5'),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        'Saima Rahman',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Senior Software Engineer at Google',
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'San Francisco, CA • CSE Department',
+                        style: TextStyle(color: Colors.white54, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Mentored 40+ EDU CSE students',
+                  style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => context.push('${AppRoutes.directory}/saima_rahman'),
+                  icon: const Icon(Icons.person_outline, size: 16, color: AppColors.mulledWine),
+                  label: const Text('View Profile', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: AppColors.mulledWine,
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
           Expanded(
@@ -147,6 +408,7 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.shade200),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.04),
@@ -159,8 +421,8 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
                 controller: _searchController,
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
-                  icon: const Icon(Icons.search, color: Colors.black45, size: 22),
-                  hintText: 'Search by name, company, or skills...',
+                  icon: const Icon(Icons.search, color: AppColors.mulledWine, size: 22),
+                  hintText: 'Search by name, company, role or skills...',
                   hintStyle: const TextStyle(color: Colors.black38, fontSize: 14),
                   border: InputBorder.none,
                   suffixIcon: _searchController.text.isNotEmpty
@@ -186,6 +448,7 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
                     ? AppColors.mulledWine
                     : Colors.white,
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.shade200),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.04),
@@ -198,7 +461,7 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
                 Icons.tune,
                 color: (_selectedDept.isNotEmpty || _onlyOpenToMentorship || _selectedRoleFilter != 'All')
                     ? Colors.white
-                    : Colors.black87,
+                    : AppColors.mulledWine,
                 size: 22,
               ),
             ),
@@ -243,11 +506,20 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
                 border: Border.all(
                   color: isSelected ? AppColors.mulledWine : Colors.grey.shade300,
                 ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.mulledWine.withOpacity(0.2),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        )
+                      ]
+                    : null,
               ),
               child: Text(
                 dept,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                   color: isSelected ? Colors.white : Colors.black87,
                 ),
@@ -263,7 +535,6 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
     final query = _searchController.text.trim().toLowerCase();
     
     final filtered = alumniList.where((person) {
-      // 1. Text Search Filter
       final matchesSearch = query.isEmpty ||
           person.fullName.toLowerCase().contains(query) ||
           (person.currentCompany?.toLowerCase().contains(query) ?? false) ||
@@ -271,13 +542,11 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
           (person.department.toLowerCase().contains(query)) ||
           person.skills.any((s) => s.toLowerCase().contains(query));
 
-      // 2. Department Filter
       final matchesDept = _selectedDept.isEmpty ||
           _selectedDept == 'All' ||
           _selectedDept == 'Open to Mentorship' ||
           person.department.toUpperCase() == _selectedDept.toUpperCase();
 
-      // 3. Mentorship Filter
       final matchesMentorship = !_onlyOpenToMentorship || person.openToMentorship;
 
       return matchesSearch && matchesDept && matchesMentorship;
@@ -306,7 +575,7 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Try broadening your search or clearing active filters.',
+                'Try broadening your search or resetting active filters.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.black54, fontSize: 14),
               ),
@@ -335,18 +604,17 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 120),
-      itemCount: filtered.length,
-      itemBuilder: (context, index) {
-        final person = filtered[index];
+    return Column(
+      children: filtered.map((person) {
         final isConnected = _connectedUids.contains(person.uid);
+        final isBookmarked = _bookmarkedUids.contains(person.uid);
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 16.0),
           child: _AlumniCard(
             alumni: person,
             isConnected: isConnected,
+            isBookmarked: isBookmarked,
             onTap: () => context.push('${AppRoutes.directory}/${person.uid}'),
             onToggleConnect: () {
               setState(() {
@@ -366,12 +634,20 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
                 ),
               );
             },
+            onToggleBookmark: () {
+              setState(() {
+                if (isBookmarked) {
+                  _bookmarkedUids.remove(person.uid);
+                } else {
+                  _bookmarkedUids.add(person.uid);
+                }
+              });
+            },
             onMessage: () async {
               final chatRepo = ref.read(chatRepositoryProvider);
               final result = await chatRepo.getOrCreateConversation(person.uid);
               result.fold(
                 (failure) {
-                  // Fallback to chat room route if cloud function fails
                   context.push('${AppRoutes.chat}/conv_${person.uid}');
                 },
                 (convId) {
@@ -381,7 +657,7 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
             },
           ),
         );
-      },
+      }).toList(),
     );
   }
 
@@ -528,15 +804,19 @@ class _DirectoryPageState extends ConsumerState<DirectoryPage> {
 class _AlumniCard extends StatelessWidget {
   final AlumniDirectoryModel alumni;
   final bool isConnected;
+  final bool isBookmarked;
   final VoidCallback onTap;
   final VoidCallback onToggleConnect;
+  final VoidCallback onToggleBookmark;
   final VoidCallback onMessage;
 
   const _AlumniCard({
     required this.alumni,
     required this.isConnected,
+    required this.isBookmarked,
     required this.onTap,
     required this.onToggleConnect,
+    required this.onToggleBookmark,
     required this.onMessage,
   });
 
@@ -619,25 +899,19 @@ class _AlumniCard extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (alumni.openToMentorship)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE8F5E9),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Text(
-                                  'Mentor',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF2E7D32),
-                                  ),
-                                ),
+                            IconButton(
+                              icon: Icon(
+                                isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                                color: isBookmarked ? AppColors.mulledWine : Colors.black45,
+                                size: 20,
                               ),
+                              onPressed: onToggleBookmark,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           alumni.displayRole,
                           style: const TextStyle(
@@ -670,8 +944,33 @@ class _AlumniCard extends StatelessWidget {
                             ],
                           ],
                         ),
+                        if (alumni.openToMentorship) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE8F5E9),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.handshake_outlined, size: 12, color: Color(0xFF2E7D32)),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Open for Mentorship',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF2E7D32),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         if (alumni.skills.isNotEmpty) ...[
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           Wrap(
                             spacing: 6,
                             runSpacing: 6,

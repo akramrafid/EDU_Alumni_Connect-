@@ -94,7 +94,7 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.mulledWine,
+              backgroundColor: const Color(0xFF700000),
             ),
             child: const Text('Send Request'),
           ),
@@ -109,13 +109,14 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
+      extendBody: true,
       body: Column(
         children: [
           _buildHeader(),
           _buildSearchBar(),
           Expanded(
             child: mentorsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF700000))),
               error: (err, stack) => Center(child: Text('Error: $err')),
               data: (mentors) {
                 final displayMentors = mentors.isNotEmpty
@@ -140,6 +141,7 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
                     return _buildMentorCard(
                       mentor: mentor,
                       onRequest: () => _showRequestDialog(mentor),
+                      isPending: false, // Wire logic if you have it in backend
                     );
                   },
                 );
@@ -155,7 +157,7 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
     return Container(
       height: 120,
       decoration: const BoxDecoration(
-        color: AppColors.mulledWine,
+        color: Color(0xFF700000),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
       ),
       padding: const EdgeInsets.fromLTRB(24, 50, 24, 0),
@@ -221,6 +223,42 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _buildFilterChip('All Industries', Icons.tune),
+              const SizedBox(width: 8),
+              _buildFilterChip('Location', null),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, IconData? icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: Colors.black54),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
         ],
       ),
     );
@@ -229,10 +267,11 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
   Widget _buildMentorCard({
     required AlumniDirectoryModel mentor,
     required VoidCallback onRequest,
+    required bool isPending,
   }) {
     final tags = [
       mentor.department,
-      mentor.classYear,
+      'Class of \'${mentor.batchYear.toString().substring(2)}',
       if (mentor.skills.isNotEmpty) mentor.skills.first,
     ];
 
@@ -286,6 +325,7 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
                   ],
                 ),
               ),
+              const Icon(Icons.bookmark_border, color: Colors.black54, size: 20),
             ],
           ),
           const SizedBox(height: 16),
@@ -303,6 +343,8 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
                 color: Colors.black54,
                 height: 1.5,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
           const SizedBox(height: 20),
@@ -310,17 +352,18 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: onRequest,
-              icon: const Icon(Icons.handshake_outlined,
-                  color: Colors.white, size: 18),
-              label: const Text(
-                'Request Mentorship',
+              icon: isPending 
+                ? const SizedBox.shrink() 
+                : const Icon(Icons.handshake_outlined, color: Colors.white, size: 18),
+              label: Text(
+                isPending ? 'Pending Request...' : 'Request Mentorship',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: isPending ? const Color(0xFF700000) : Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.mulledWine,
+                backgroundColor: isPending ? const Color(0xFFFDEAEA) : const Color(0xFF700000),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -346,7 +389,7 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
         style: const TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
-          color: AppColors.mulledWine,
+          color: Color(0xFF700000),
         ),
       ),
     );

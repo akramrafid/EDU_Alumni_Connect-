@@ -702,9 +702,16 @@ class _ChatDetailPageState extends ConsumerState<ChatDetailPage> {
               ),
             ] else ...[
               if (_textController.text.trim().isNotEmpty || _pendingImage != null || _pendingDocName != null)
-                IconButton(
-                  icon: const Icon(Icons.send, color: Color(0xFF700000)),
-                  onPressed: _sendMessage,
+                GestureDetector(
+                  onTap: _sendMessage,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF700000),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.send, color: Colors.white, size: 16),
+                  ),
                 )
               else
                 GestureDetector(

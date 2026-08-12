@@ -143,6 +143,7 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
+      extendBody: true,
       floatingActionButton: isAlumniOrAdmin
           ? Padding(
               padding: const EdgeInsets.only(bottom: 24.0),
@@ -270,6 +271,27 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
                     ),
                   ),
                 ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFDEAEA),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.tune, size: 14, color: Color(0xFF700000)),
+                      SizedBox(width: 4),
+                      Text(
+                        'Filter',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF700000),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -323,7 +345,10 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
                   color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.work, color: AppColors.mulledWine),
+                child: Icon(
+                  _getIconForCompany(job.company), 
+                  color: _getColorForCompany(job.company)
+                ),
               ),
               if (job.isPostedByAlumni)
                 Container(
@@ -385,17 +410,17 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.mulledWine,
+                backgroundColor: job.isPostedByAlumni ? const Color(0xFF700000) : const Color(0xFFFDEAEA),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 elevation: 0,
               ),
-              child: const Text(
-                'Apply Now',
+              child: Text(
+                job.isPostedByAlumni ? 'Apply Now' : 'View Details',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: job.isPostedByAlumni ? Colors.white : const Color(0xFF700000),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -455,6 +480,46 @@ class _OpportunitiesPageState extends ConsumerState<OpportunitiesPage> {
         applyLink: 'https://apexcapital.com',
         postedAt: DateTime.now().subtract(const Duration(days: 3)),
       ),
+      JobModel(
+        jobId: 'job_3',
+        postedByAlumniId: 'alumni_3',
+        posterName: 'Elena Rostova',
+        title: 'Data Engineering Lead',
+        company: 'Nexus Health Tech',
+        location: 'Remote',
+        jobType: 'Full-time',
+        description: 'Lead data engineering for our health platform.',
+        applyLink: 'https://nexushealth.com',
+        postedAt: DateTime.now().subtract(const Duration(days: 5)),
+      ),
+      JobModel(
+        jobId: 'job_4',
+        postedByAlumniId: 'system',
+        posterName: 'System',
+        title: 'Marketing Associate',
+        company: 'Global Reach Media',
+        location: 'Chicago, IL',
+        jobType: 'Contract',
+        description: 'Looking for a driven marketing associate.',
+        applyLink: 'https://globalreach.com',
+        postedAt: DateTime.now().subtract(const Duration(days: 7)),
+      ),
     ];
+  }
+
+  IconData _getIconForCompany(String company) {
+    if (company.contains('TechFlow')) return Icons.water_drop;
+    if (company.contains('Apex')) return Icons.public;
+    if (company.contains('Nexus')) return Icons.analytics;
+    if (company.contains('Global')) return Icons.campaign;
+    return Icons.work;
+  }
+
+  Color _getColorForCompany(String company) {
+    if (company.contains('TechFlow')) return Colors.blue;
+    if (company.contains('Apex')) return Colors.blue;
+    if (company.contains('Nexus')) return Colors.black87;
+    if (company.contains('Global')) return Colors.teal;
+    return AppColors.mulledWine;
   }
 }

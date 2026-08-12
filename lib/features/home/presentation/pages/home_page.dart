@@ -15,6 +15,8 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  final TextEditingController _searchController = TextEditingController();
+
   // Mock Featured Alumni Mentors Spotlight
   final List<Map<String, String>> _featuredMentors = [
     {
@@ -25,6 +27,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       'avatar': 'https://i.pravatar.cc/150?img=5',
       'rating': '4.9 ★',
       'expertise': 'AI & Machine Learning',
+      'verified': 'true',
     },
     {
       'id': 'mentor_2',
@@ -34,6 +37,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       'avatar': 'https://i.pravatar.cc/150?img=12',
       'rating': '4.8 ★',
       'expertise': 'Flutter & Mobile Arch',
+      'verified': 'true',
     },
     {
       'id': 'mentor_3',
@@ -43,6 +47,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       'avatar': 'https://i.pravatar.cc/150?img=15',
       'rating': '5.0 ★',
       'expertise': 'Product & Strategy',
+      'verified': 'true',
     },
   ];
 
@@ -66,7 +71,22 @@ class _HomePageState extends ConsumerState<HomePage> {
       'stipend': '35k - 45k BDT/mo',
       'posted': '1d ago',
     },
+    {
+      'id': 'job_3',
+      'title': 'UI/UX Product Designer',
+      'company': 'TigerIT Bangladesh',
+      'location': 'Chittagong (Hybrid)',
+      'type': 'Full-time',
+      'stipend': '40k - 55k BDT/mo',
+      'posted': '3d ago',
+    },
   ];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   String _getTimeBasedGreeting() {
     final hour = DateTime.now().hour;
@@ -93,27 +113,31 @@ class _HomePageState extends ConsumerState<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Dynamic Hero Header & Metrics Deck
+            // 1. Dynamic Hero Header & Analytics Deck
             _buildHeroHeaderAndMetrics(welcomeRole, greetingName),
-            const SizedBox(height: 14),
+            const SizedBox(height: 20),
 
-            // 2. Featured Campus Event Hero Spotlight Banner
+            // 2. Global Quick Search Bar
+            _buildSearchBar(),
+            const SizedBox(height: 20),
+
+            // 3. Featured Campus Event Hero Spotlight Banner
             _buildFeaturedHeroBanner(),
             const SizedBox(height: 24),
 
-            // 3. Quick Actions Grid & Tools
+            // 4. Quick Actions Grid & Tools
             _buildQuickActions(),
             const SizedBox(height: 28),
 
-            // 4. Featured Alumni Mentors Spotlight Section
+            // 5. Featured Alumni Mentors Spotlight Section
             _buildFeaturedMentorsSpotlight(),
             const SizedBox(height: 28),
 
-            // 5. Upcoming Campus Events Carousel
+            // 6. Upcoming Campus Events Carousel
             _buildUpcomingEvents(),
             const SizedBox(height: 28),
 
-            // 6. Recommended Career Opportunities
+            // 7. Recommended Career Opportunities
             _buildRecommendedJobs(),
           ],
         ),
@@ -128,13 +152,21 @@ class _HomePageState extends ConsumerState<HomePage> {
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
       children: [
-        Container(height: 215, color: Colors.transparent),
+        const SizedBox(height: 235),
         
-        // Brand Dark Red Top Header
+        // Premium Brand Gradient Top Header
         Container(
-          height: 175,
+          height: 190,
           decoration: const BoxDecoration(
-            color: AppColors.mulledWine,
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF4A0000),
+                AppColors.mulledWine,
+                Color(0xFF8B1A1A),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.vertical(
               bottom: Radius.circular(32),
             ),
@@ -155,6 +187,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
                           ),
                           child: const CircleAvatar(
                             radius: 26,
@@ -188,7 +227,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                             '$timeGreeting, ',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.85),
-                              fontSize: 14,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                           Container(
@@ -201,7 +241,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                               welcomeRole.toUpperCase(),
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 10,
+                                fontSize: 9,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.8,
                               ),
@@ -230,9 +270,25 @@ class _HomePageState extends ConsumerState<HomePage> {
                   color: Colors.white.withOpacity(0.15),
                   shape: BoxShape.circle,
                 ),
-                child: IconButton(
-                  icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-                  onPressed: () => context.push(AppRoutes.notifications),
+                child: Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                      onPressed: () => context.push(AppRoutes.notifications),
+                    ),
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFF5252),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -241,18 +297,18 @@ class _HomePageState extends ConsumerState<HomePage> {
 
         // Metrics Deck Overlapping Header
         Positioned(
-          top: 125,
-          left: 24,
-          right: 24,
+          top: 135,
+          left: 20,
+          right: 20,
           child: Container(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 16,
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 18,
                   offset: const Offset(0, 8),
                 ),
               ],
@@ -263,21 +319,24 @@ class _HomePageState extends ConsumerState<HomePage> {
                   title: 'PROFILE VIEWS',
                   value: '142',
                   trend: '+12%',
-                  isPositive: true,
                 ),
-                Container(height: 40, width: 1, color: Colors.grey.shade200),
+                Container(height: 36, width: 1, color: Colors.grey.shade200),
                 _buildStatItem(
                   title: 'CONNECTIONS',
                   value: '89',
                   trend: '+4',
-                  isPositive: true,
                 ),
-                Container(height: 40, width: 1, color: Colors.grey.shade200),
+                Container(height: 36, width: 1, color: Colors.grey.shade200),
                 _buildStatItem(
                   title: 'MENTOR CALLS',
                   value: '2',
                   trend: 'Pending',
-                  isPositive: true,
+                ),
+                Container(height: 36, width: 1, color: Colors.grey.shade200),
+                _buildStatItem(
+                  title: 'JOBS APPLIED',
+                  value: '5',
+                  trend: 'Active',
                 ),
               ],
             ),
@@ -291,7 +350,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     required String title,
     required String value,
     required String trend,
-    required bool isPositive,
   }) {
     return Expanded(
       child: Column(
@@ -299,26 +357,29 @@ class _HomePageState extends ConsumerState<HomePage> {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 10,
+              fontSize: 9,
               fontWeight: FontWeight.bold,
               color: Colors.black45,
-              letterSpacing: 0.5,
+              letterSpacing: 0.3,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 value,
                 style: const TextStyle(
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: AppColors.mulledWine,
                   height: 1,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 3),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 decoration: BoxDecoration(
@@ -328,7 +389,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: Text(
                   trend,
                   style: const TextStyle(
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: FontWeight.bold,
                     color: AppColors.mulledWine,
                   ),
@@ -337,6 +398,47 @@ class _HomePageState extends ConsumerState<HomePage> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            icon: const Icon(Icons.search, color: AppColors.mulledWine, size: 22),
+            hintText: 'Search alumni, jobs, mentors, events...',
+            hintStyle: const TextStyle(color: Colors.black38, fontSize: 14),
+            border: InputBorder.none,
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.tune, color: Colors.black45, size: 20),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Filter menu coming soon!'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -356,7 +458,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           boxShadow: [
             BoxShadow(
               color: AppColors.mulledWine.withOpacity(0.3),
-              blurRadius: 12,
+              blurRadius: 14,
               offset: const Offset(0, 6),
             ),
           ],
@@ -433,6 +535,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
+                    elevation: 2,
                   ),
                   child: const Text('RSVP Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 ),
@@ -504,12 +607,14 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Alumni Mentor Spotlight',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              const Expanded(
+                child: Text(
+                  'Alumni Mentor Spotlight',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
               TextButton(
@@ -527,7 +632,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 180,
+          height: 190,
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             scrollDirection: Axis.horizontal,
@@ -535,7 +640,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             itemBuilder: (context, index) {
               final mentor = _featuredMentors[index];
               return Container(
-                width: 220,
+                width: 230,
                 margin: const EdgeInsets.only(right: 14),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -554,9 +659,25 @@ class _HomePageState extends ConsumerState<HomePage> {
                   children: [
                     Row(
                       children: [
-                        CircleAvatar(
-                          radius: 22,
-                          backgroundImage: NetworkImage(mentor['avatar']!),
+                        Stack(
+                          children: [
+                            CircleAvatar(
+                              radius: 22,
+                              backgroundImage: NetworkImage(mentor['avatar']!),
+                            ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: const BoxDecoration(
+                                  color: Colors.blue,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.check, size: 8, color: Colors.white),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -575,7 +696,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                               ),
                               Text(
                                 mentor['role']!,
-                                style: const TextStyle(fontSize: 12, color: Colors.black54),
+                                style: const TextStyle(fontSize: 11, color: Colors.black54),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -635,12 +756,14 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Upcoming Events',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              const Expanded(
+                child: Text(
+                  'Upcoming Events',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
               TextButton(
@@ -658,7 +781,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 240,
+          height: 250,
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             scrollDirection: Axis.horizontal,
@@ -696,12 +819,14 @@ class _HomePageState extends ConsumerState<HomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Recommended Opportunities',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+              const Expanded(
+                child: Text(
+                  'Recommended Opportunities',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
               TextButton(
@@ -759,9 +884,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                         const SizedBox(height: 2),
                         Text(
                           '${job['company']} • ${job['location']}',
-                          style: const TextStyle(fontSize: 13, color: Colors.black54),
+                          style: const TextStyle(fontSize: 12, color: Colors.black54),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                         Row(
                           children: [
                             Container(
@@ -790,7 +915,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () => context.go(AppRoutes.jobs),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Applied for ${job['title']}!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.mulledWine,
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -949,7 +1081,7 @@ class _EventCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Text(
             title,
             maxLines: 2,
@@ -980,20 +1112,31 @@ class _EventCard extends StatelessWidget {
             ],
           ),
           const Spacer(),
+          // Attendee Avatars Stack
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Attendees',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+              _buildAvatarOverlapped('https://i.pravatar.cc/150?img=5'),
+              _buildAvatarOverlapped('https://i.pravatar.cc/150?img=6'),
+              _buildAvatarOverlapped('https://i.pravatar.cc/150?img=7'),
+              Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: AppColors.mulledWine.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: Center(
+                  child: Text(
+                    '+${attendees > 3 ? attendees - 3 : 0}',
+                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: AppColors.mulledWine),
+                  ),
                 ),
               ),
+              const Spacer(),
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  style: const TextStyle(fontSize: 11, color: Colors.black54),
                   children: [
                     TextSpan(
                       text: '$attendees ',
@@ -1008,7 +1151,7 @@ class _EventCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           LinearProgressIndicator(
             value: progress,
             backgroundColor: Colors.grey.shade200,
@@ -1017,6 +1160,22 @@ class _EventCard extends StatelessWidget {
             minHeight: 6,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAvatarOverlapped(String url) {
+    return Align(
+      widthFactor: 0.7,
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 2),
+        ),
+        child: CircleAvatar(
+          radius: 12,
+          backgroundImage: NetworkImage(url),
+        ),
       ),
     );
   }
