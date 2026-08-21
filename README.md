@@ -29,6 +29,7 @@ This project is built with scalability, maintainability, and testing in mind, ad
 *   **Code Generation:** `freezed`, `json_serializable`, `riverpod_generator`
 *   **Functional Programming:** `fpdart` for error handling and functional paradigms.
 *   **Architecture:** Feature-first modular architecture (Clean Architecture principles).
+*   **Database & ER Diagram:** See [DATABASE_ARCHITECTURE.md](./DATABASE_ARCHITECTURE.md) for database connection architecture, Crow's Foot ER diagram, and normalization analysis.
 
 ## 📁 Project Structure
 
