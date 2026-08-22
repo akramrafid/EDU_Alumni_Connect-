@@ -310,7 +310,7 @@ class _EventsPageState extends ConsumerState<EventsPage> {
             ),
             const SizedBox(height: 12),
             const Text(
-              'Annual EDU Alumni Gala & Tech Summit 2026',
+              '2nd Convocation 2026 & Annual EDU Alumni Gala Night',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
