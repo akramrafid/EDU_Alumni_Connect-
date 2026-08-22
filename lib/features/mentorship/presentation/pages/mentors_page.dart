@@ -239,43 +239,50 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => context.push(AppRoutes.profile),
-                    child: UserAvatar(
-                      photoUrl: user?.photoUrl,
-                      fullName: user?.fullName ?? 'User',
-                      radius: 20,
-                      borderWidth: 2,
-                      borderColor: Colors.white.withValues(alpha: 0.4),
+              Expanded(
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => context.push(AppRoutes.profile),
+                      child: UserAvatar(
+                        photoUrl: user?.photoUrl,
+                        fullName: user?.fullName ?? 'User',
+                        radius: 20,
+                        borderWidth: 2,
+                        borderColor: Colors.white.withValues(alpha: 0.4),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Explore Mentors',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.5,
-                        ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Explore Mentors',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Connect 1-on-1 with EDU Alumni Leaders',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11.5,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Connect 1-on-1 with EDU Alumni Leaders',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 11.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               CircleAvatar(
                 backgroundColor: Colors.black.withValues(alpha: 0.25),
                 child: IconButton(
@@ -550,13 +557,16 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
                       children: [
                         Row(
                           children: [
-                            Text(
-                              mentor.fullName,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: Color(0xFF1A0A0E),
-                                letterSpacing: -0.3,
+                            Flexible(
+                              child: Text(
+                                mentor.fullName,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFF1A0A0E),
+                                  letterSpacing: -0.3,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             const SizedBox(width: 6),
@@ -586,6 +596,8 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF670627),
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         if (mentor.currentCompany != null) ...[
                           const SizedBox(height: 2),
@@ -596,6 +608,8 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF6B4A52),
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ],
@@ -636,12 +650,15 @@ class _MentorsPageState extends ConsumerState<MentorsPage> {
                   const SizedBox(width: 8),
                   const Icon(Icons.location_on_rounded, size: 13, color: Color(0xFF8C7A82)),
                   const SizedBox(width: 2),
-                  Text(
-                    mentor.location ?? 'Worldwide',
-                    style: const TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF8C7A82),
+                  Flexible(
+                    child: Text(
+                      mentor.location ?? 'Worldwide',
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF8C7A82),
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -770,32 +787,40 @@ class _HeaderMetricItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 13, color: const Color(0xFF00C9A7)),
-            const SizedBox(width: 4),
-            Text(
-              val,
-              style: const TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
+    return Expanded(
+      child: Column(
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 13, color: const Color(0xFF00C9A7)),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  val,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10.5,
-            color: Colors.white.withValues(alpha: 0.7),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10.5,
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }

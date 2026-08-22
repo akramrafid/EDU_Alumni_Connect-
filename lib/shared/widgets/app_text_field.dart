@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class AppTextField extends StatelessWidget {
+class AppTextField extends StatefulWidget {
   final TextEditingController? controller;
   final String? label;
   final String? hint;
@@ -14,7 +14,7 @@ class AppTextField extends StatelessWidget {
   final int? maxLines;
   final int? minLines;
 
-  AppTextField({
+  const AppTextField({
     super.key,
     this.controller,
     this.label,
@@ -30,48 +30,52 @@ class AppTextField extends StatelessWidget {
     this.minLines,
   });
 
-  // Local state for password visibility toggle, avoiding setState()
-  final ValueNotifier<bool> _obscuredNotifier = ValueNotifier<bool>(true);
+  @override
+  State<AppTextField> createState() => _AppTextFieldState();
+}
+
+class _AppTextFieldState extends State<AppTextField> {
+  late bool _obscured;
+
+  @override
+  void initState() {
+    super.initState();
+    _obscured = widget.obscureText;
+  }
+
+  @override
+  void didUpdateWidget(covariant AppTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.obscureText != widget.obscureText) {
+      _obscured = widget.obscureText;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (!obscureText) {
-      return _buildTextFormField(obscureText: false);
-    }
-
-    return ValueListenableBuilder<bool>(
-      valueListenable: _obscuredNotifier,
-      builder: (context, obscured, child) {
-        return _buildTextFormField(
-          obscureText: obscured,
-          suffix: IconButton(
-            icon: Icon(
-              obscured ? Icons.visibility_off : Icons.visibility,
-            ),
-            onPressed: () {
-              _obscuredNotifier.value = !_obscuredNotifier.value;
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTextFormField({required bool obscureText, Widget? suffix}) {
     return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      validator: validator,
-      onChanged: onChanged,
-      enabled: enabled,
-      maxLines: obscureText ? 1 : maxLines,
-      minLines: minLines,
+      controller: widget.controller,
+      obscureText: _obscured,
+      keyboardType: widget.keyboardType,
+      validator: widget.validator,
+      onChanged: widget.onChanged,
+      enabled: widget.enabled,
+      maxLines: _obscured ? 1 : widget.maxLines,
+      minLines: widget.minLines,
       decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: prefixIcon,
-        suffixIcon: suffix ?? suffixIcon,
+        labelText: widget.label,
+        hintText: widget.hint,
+        prefixIcon: widget.prefixIcon,
+        suffixIcon: widget.obscureText
+            ? IconButton(
+                icon: Icon(
+                  _obscured ? Icons.visibility_off : Icons.visibility,
+                ),
+                onPressed: () {
+                  setState(() => _obscured = !_obscured);
+                },
+              )
+            : widget.suffixIcon,
       ),
     );
   }

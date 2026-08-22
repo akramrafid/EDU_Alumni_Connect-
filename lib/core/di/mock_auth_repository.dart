@@ -39,6 +39,7 @@ class MockAuthRepository implements IAuthRepository {
     );
     _currentUser = user;
     _authController.add(right(user));
+    await Future.delayed(const Duration(milliseconds: 50));
     return right(user);
   }
 

@@ -389,35 +389,38 @@ class _HomePageState extends ConsumerState<HomePage> {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.mulledWine,
-                  height: 1,
-                ),
-              ),
-              const SizedBox(width: 3),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.mulledWine.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  trend,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  value,
                   style: const TextStyle(
-                    fontSize: 9,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.mulledWine,
+                    height: 1,
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 3),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.mulledWine.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    trend,
+                    style: const TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.mulledWine,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -540,22 +543,28 @@ class _HomePageState extends ConsumerState<HomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
-                  children: [
-                    Icon(Icons.location_on_outlined, color: Colors.white70, size: 16),
-                    SizedBox(width: 4),
-                    Text(
-                      'Radisson Blu, Chittagong',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                  ],
+                const Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.location_on_outlined, color: Colors.white70, size: 16),
+                      SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          'Radisson Blu, Chittagong',
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () => context.go(AppRoutes.events),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: AppColors.mulledWine,
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -632,21 +641,27 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Text(
-                    'Alumni Mentor Spotlight',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF1A0A0E),
-                      letterSpacing: -0.3,
+              const Expanded(
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        'Alumni Mentor Spotlight',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF1A0A0E),
+                          letterSpacing: -0.3,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 6),
-                  Text('🔥', style: TextStyle(fontSize: 16)),
-                ],
+                    SizedBox(width: 6),
+                    Text('🔥', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               InkWell(
                 onTap: () {
                   HapticFeedback.lightImpact();
@@ -1002,10 +1017,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              job['stipend']!,
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
+                            Flexible(
+                              child: Text(
+                                job['stipend']!,
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
@@ -1142,21 +1159,25 @@ class _EventCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.mulledWine.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  tag,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.mulledWine,
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.mulledWine.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    tag,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.mulledWine,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
+              const SizedBox(width: 6),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [

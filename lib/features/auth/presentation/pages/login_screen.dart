@@ -127,7 +127,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                                 onPressed: () {
                                   Navigator.of(dialogContext).pop();
-                                  context.push(AppRoutes.profileSetup);
+                                  context.push(AppRoutes.register);
                                 },
                                 child: const Text('Sign Up',
                                     style: TextStyle(color: Colors.white)),
@@ -414,7 +414,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             GestureDetector(
                               onTap: isLoading
                                   ? null
-                                  : () => context.push(AppRoutes.profileSetup),
+                                  : () => context.push(AppRoutes.register),
                               child: const Text(
                                 'Sign Up',
                                 style: TextStyle(

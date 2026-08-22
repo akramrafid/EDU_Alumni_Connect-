@@ -17,7 +17,7 @@ import '../../features/auth/presentation/pages/verification_pending_screen.dart'
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/directory/presentation/pages/directory_page.dart';
 import '../../features/directory/presentation/pages/alumni_profile_page.dart';
-import '../../features/mentorship/presentation/pages/mentorship_screen.dart';
+import '../../features/mentorship/presentation/pages/mentors_page.dart';
 import '../../features/mentorship/presentation/pages/mentorship_detail_screen.dart';
 import '../../features/chat/presentation/pages/chat_page.dart';
 import '../../features/chat/presentation/pages/chat_detail_page.dart';
@@ -49,33 +49,31 @@ GoRouter router(RouterRef ref) {
       final user = authStateAsync.value;
       final matchedLocation = state.matchedLocation;
 
-      // 1. Always allow Splash, Onboarding, Login, Register, and ProfileSetup to display cleanly in sequence
       final isAuthFlowPage = matchedLocation == AppRoutes.splash ||
           matchedLocation == AppRoutes.onboarding ||
           matchedLocation == AppRoutes.login ||
           matchedLocation == AppRoutes.register ||
           matchedLocation == AppRoutes.profileSetup;
 
+      if (user != null) {
+        if (user.role == UserRole.alumni &&
+            user.verificationStatus == VerificationStatus.pending) {
+          return matchedLocation == '/pending' ? null : '/pending';
+        }
+        if (isAuthFlowPage) {
+          return AppRoutes.home;
+        }
+        if (matchedLocation.startsWith(AppRoutes.admin) && user.role != UserRole.admin) {
+          return AppRoutes.home;
+        }
+        return null;
+      }
+
       if (isAuthFlowPage) {
         return null;
       }
 
-      if (user == null) {
-        return AppRoutes.login;
-      }
-
-      if (user.role == UserRole.alumni &&
-          user.verificationStatus == VerificationStatus.pending) {
-        return matchedLocation == '/pending' ? null : '/pending';
-      }
-
-      if (matchedLocation.startsWith(AppRoutes.admin)) {
-        if (user.role != UserRole.admin) {
-          return AppRoutes.home;
-        }
-      }
-
-      return null;
+      return AppRoutes.login;
     },
     routes: [
       GoRoute(
@@ -141,7 +139,7 @@ GoRouter router(RouterRef ref) {
           ),
           GoRoute(
             path: AppRoutes.mentorship,
-            builder: (context, state) => const MentorshipScreen(),
+            builder: (context, state) => const MentorsPage(),
             routes: [
               GoRoute(
                 path: ':requestId',

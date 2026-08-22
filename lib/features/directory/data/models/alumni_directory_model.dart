@@ -44,5 +44,9 @@ class AlumniDirectoryModel with _$AlumniDirectoryModel {
   }
 
   /// Display class year (e.g., "Class of '18")
-  String get classYear => "Class of '${batchYear.toString().substring(2)}";
+  String get classYear {
+    final str = batchYear.toString();
+    final yearPart = str.length >= 2 ? str.substring(str.length - 2) : str;
+    return "Class of '$yearPart";
+  }
 }

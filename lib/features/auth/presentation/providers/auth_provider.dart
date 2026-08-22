@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../../core/constants/app_config.dart';
 import '../../../../core/di/providers.dart';
 import '../../data/models/user_model.dart';
 import '../../domain/entities/auth_user.dart';
@@ -20,17 +21,25 @@ Stream<AuthUser?> userProfileStream(UserProfileStreamRef ref) {
   final authUser = ref.watch(authStateProvider).value;
   if (authUser == null) return Stream.value(null);
 
-  final firestore = ref.watch(firebaseFirestoreProvider);
-  return firestore.collection('users').doc(authUser.uid).snapshots().map((doc) {
-    final data = doc.data();
-    if (!doc.exists || data == null) return authUser;
-    try {
-      final model = UserModel.fromFirestore(data, doc.id);
-      return model.toEntity(isEmailVerified: authUser.isEmailVerified);
-    } catch (_) {
-      return authUser;
-    }
-  });
+  if (AppConfig.useMock) {
+    return Stream.value(authUser);
+  }
+
+  try {
+    final firestore = ref.watch(firebaseFirestoreProvider);
+    return firestore.collection('users').doc(authUser.uid).snapshots().map((doc) {
+      final data = doc.data();
+      if (!doc.exists || data == null) return authUser;
+      try {
+        final model = UserModel.fromFirestore(data, doc.id);
+        return model.toEntity(isEmailVerified: authUser.isEmailVerified);
+      } catch (_) {
+        return authUser;
+      }
+    }).handleError((_) => authUser);
+  } catch (_) {
+    return Stream.value(authUser);
+  }
 }
 
 @riverpod
