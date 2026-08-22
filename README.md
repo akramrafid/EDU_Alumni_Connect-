@@ -28,8 +28,8 @@ This project is built with scalability, maintainability, and testing in mind, ad
 *   **Search Engine:** Algolia
 *   **Code Generation:** `freezed`, `json_serializable`, `riverpod_generator`
 *   **Functional Programming:** `fpdart` for error handling and functional paradigms.
-*   **Architecture:** Feature-first modular architecture (Clean Architecture principles).
 *   **Database & ER Diagram:** See [DATABASE_ARCHITECTURE.md](./DATABASE_ARCHITECTURE.md) for database connection architecture, Crow's Foot ER diagram, and normalization analysis.
+*   **Project Flow & Routing Diagram:** See [PROJECT_FLOW_DIAGRAM.md](./PROJECT_FLOW_DIAGRAM.md) for overall project flow, page links, and database interactions.
 
 ## 📁 Project Structure
 
